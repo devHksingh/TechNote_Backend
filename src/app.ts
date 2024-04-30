@@ -1,6 +1,7 @@
 // express setup
 
 import express, { NextFunction, Request, Response } from "express"
+import globalErrorHandler from "./middlewares/globalErrorHanlder"
 
 
 
@@ -19,4 +20,6 @@ app.get('/api/v1',(req:Request,res:Response,next:NextFunction)=>{
 })
 
 
+
+app.use(globalErrorHandler)
 export default app
