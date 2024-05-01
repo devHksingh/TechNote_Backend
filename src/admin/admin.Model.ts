@@ -1,20 +1,6 @@
 import mongoose, { Schema } from "mongoose";
 import { AdminInterface } from "../types/adminTypes";
-import jwt from 'jsonwebtoken'
 
-/*
-export interface AdminInterface {
-    _id:string;
-    name:string;
-    email:string;
-    password:string;
-    avatar:string;
-    refreshToken:string;
-    createdAt:Date;
-    updatedAt:Date;
-    
-}
-*/
 const adminSchema = new Schema<AdminInterface>({
     name:{
         type:String,

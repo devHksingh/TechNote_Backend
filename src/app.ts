@@ -2,6 +2,7 @@
 
 import express, { NextFunction, Request, Response } from "express"
 import globalErrorHandler from "./middlewares/globalErrorHanlder"
+import adminRouter from "./admin/adminRouter"
 
 
 
@@ -19,7 +20,9 @@ app.get('/api/v1',(req:Request,res:Response,next:NextFunction)=>{
     })
 })
 
+// admin router
+app.use('/api/v1/admin',adminRouter)
 
-
+//  Global error handler
 app.use(globalErrorHandler)
 export default app
