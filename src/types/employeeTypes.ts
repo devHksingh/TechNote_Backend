@@ -6,7 +6,7 @@ enum Role {
     TechSupport = "tech_support"
   }
 
-export interface employeeInterface {
+export interface EmployeeInterface {
     _id:string;
     name:string;
     email:string;

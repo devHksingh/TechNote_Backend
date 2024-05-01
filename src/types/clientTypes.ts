@@ -9,5 +9,5 @@ export interface ClientInterface{
     refreshToken:string;
     createdAt:Date;
     updatedAt:Date;
-    task:TaskInterface;
+    // task:TaskInterface;
 }

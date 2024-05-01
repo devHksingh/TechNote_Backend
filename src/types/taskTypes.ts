@@ -1,4 +1,11 @@
+import { ClientInterface } from "./clientTypes";
+import { EmployeeInterface } from "./employeeTypes";
 
+enum PaymentStatus {
+    Paid = "Paid",
+    PartialPaid = "PartialPaid",
+    NotPaid = "NotPaid"
+  }
 export interface TaskInterface {
     _id:string;
     title:string;
@@ -11,7 +18,9 @@ export interface TaskInterface {
     finalTotalCost:number;
     advancePaymentPaid:number;
     paymentPaid:boolean;
-    paymentStatus:string;
+    paymentStatus:PaymentStatus;
+    assignEmployee:EmployeeInterface;
+    clientDetail:ClientInterface;
     createdAt:Date;
     updatedAt:Date;
 }
