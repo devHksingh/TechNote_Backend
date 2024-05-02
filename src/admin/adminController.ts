@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import { Admin } from "./admin.Model";
 import createHttpError from "http-errors";
 import bcryptPassword from "../utils/bcrytHashpasword";
+import { AdminInterface } from "../types/adminTypes";
 
 
 
@@ -15,7 +16,7 @@ const createAdmin =async(req:Request,res:Response,next:NextFunction)=>{
     // DB call to create new Admin
     // Send json message with token
 
-    const {name,email,passowrd,avatar} = req.body
+    const {name,email,password,avatar} = req.body
 
     // check if admin already exist ->db call
 
@@ -28,13 +29,39 @@ const createAdmin =async(req:Request,res:Response,next:NextFunction)=>{
     } catch (error) {
         return next(createHttpError(500,"Error while getting adim details"))
     }
-
-     // password -> hash
     
-     const hashedPassword = bcryptPassword(passowrd)
+    // password -> hash
+    let hashedPassword =''
+    try {
+        if(password){
+            hashedPassword = await bcryptPassword(password)   
+        }   
+    } catch (error) {
+        return createHttpError(400,"Failed to create hashed password . try it again!!")
+        
+    }
+
+    // Token generation JWT
+    
+    // create new admin in db
+
+    let newAdmin:AdminInterface
+
+    try {
+        newAdmin = await Admin.create({
+            name,
+            email,
+            password:hashedPassword,
+            avatar,
+            refreshToken
+        })
+        
+    } catch (error) {
+        return createHttpError(500,"Error while creating admin in DB")
+    }
 
 
-    res.status(200).json({message:'Admin is created successfully',token:"access token"})
+    res.status(200).json({message:'Admin is created successfully',token:hashedPassword})
 
 }
 
