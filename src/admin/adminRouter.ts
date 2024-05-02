@@ -15,7 +15,7 @@ const  adminRouter = express.Router()
 
 adminRouter.post('/register',
                 upload.fields([
-                    {name:'adminAvatar',maxCount:1}
+                    {name:'avatar',maxCount:1}
                 ]),
                 adminRegisterSchema,
                 validate_Admin_req_schema,

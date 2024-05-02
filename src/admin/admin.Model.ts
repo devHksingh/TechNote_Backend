@@ -22,7 +22,8 @@ const adminSchema = new Schema<AdminInterface>({
     refreshToken:{
         type:String,
         required:true
-    }
+    },
+    
 },{timestamps:true})
 
 export const Admin = mongoose.model('Admin',adminSchema)
