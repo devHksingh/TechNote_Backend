@@ -1,4 +1,7 @@
 import { NextFunction, Request, Response } from "express";
+import { Admin } from "./admin.Model";
+import createHttpError from "http-errors";
+import bcryptPassword from "../utils/bcrytHashpasword";
 
 
 
@@ -11,6 +14,25 @@ const createAdmin =async(req:Request,res:Response,next:NextFunction)=>{
     // genrate tokens
     // DB call to create new Admin
     // Send json message with token
+
+    const {name,email,passowrd,avatar} = req.body
+
+    // check if admin already exist ->db call
+
+    try {
+        
+        const user = await Admin.findOne({email:email})
+        if(user){
+            return createHttpError(400,"Admin already exits with this email")
+        }
+    } catch (error) {
+        return next(createHttpError(500,"Error while getting adim details"))
+    }
+
+     // password -> hash
+    
+     const hashedPassword = bcryptPassword(passowrd)
+
 
     res.status(200).json({message:'Admin is created successfully',token:"access token"})
 
