@@ -11,7 +11,8 @@ const schema = [
         .withMessage('Email must contain a valid email address'),
     body('password')
         .isLength({min:4})
-        .withMessage('password is required and must be at least 4 characters long')
+        .withMessage('password is required and must be at least 4 characters long'),
+    body('adminAvatar').optional(),    
 ]
 
 export {schema as adminRegisterSchema}
