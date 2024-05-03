@@ -6,19 +6,15 @@ import { AdminInterface } from "../types/adminTypes";
 import cloudinary from "../config/cloudinary";
 import { config } from "../config/config";
 import path from "node:path";
+import fs from 'node:fs'
 import { sign } from "jsonwebtoken";
+import { uploadOnCloudinary } from "../utils/uploadOnCloudinary";
 
 
 
 const createAdmin =async(req:Request,res:Response,next:NextFunction)=>{
 
-    // validation request -> express validator
-    // check if admin already exist ->db call
-    // If yes-> send response  User already exits with this email
-    // If not-> create hash password by bcryptjs
-    // genrate tokens
-    // DB call to create new Admin
-    // Send json message with token
+    
 
     const {name,email,password,avatar} = req.body
 
@@ -28,7 +24,7 @@ const createAdmin =async(req:Request,res:Response,next:NextFunction)=>{
         
         const user = await Admin.findOne({email:email})
         if(user){
-            return createHttpError(400,"Admin already exits with this email")
+            return next(createHttpError(400,"Admin already exits with this email"))
         }
     } catch (error) {
         return next(createHttpError(500,"Error while getting adim details"))
@@ -41,115 +37,79 @@ const createAdmin =async(req:Request,res:Response,next:NextFunction)=>{
             hashedPassword = await bcryptPassword(password)   
         }   
     } catch (error) {
-        return createHttpError(400,"Failed to create hashed password . try it again!!")
+        return next(createHttpError(400,"Failed to create hashed password . try it again!!"))
         
     }
 
     // upload avatar on cloudinary 'image/png'
 
-    // console.log(req.files);
-    // console.log(avatar);
-    // let dummyImgAvatarUrl ='111'
-    // if(!req.files){
-    //      dummyImgAvatarUrl = cloudinary.url('user_icon/u3tbkvne0bhzxaofqwgx')
-    // }
-    // console.log(dummyImgAvatarUrl);
-
-    // if(req.files){
-    //     // console.log(req.files === null);
-    //     // console.log(req.files)
-    //     let dummyImgAvatarUrl = await cloudinary.url('user_icon/sxt1v0lellgfppub92cg')
-    //     console.log(dummyImgAvatarUrl);
-        
-    // }else{
-    //     console.log('no file found');
-    //     let dummyImgAvatarUrl = await cloudinary.url('user_icon/sxt1v0lellgfppub92cg')
-    //     console.log(dummyImgAvatarUrl);
-        
-        
-    // }
+    
 
     let avatarUrl 
-
-    if(!avatar){
+    if (req.files && Object.keys(req.files).length === 0) {
+        console.log('No files were uploaded');
         console.log('avatar not found');
         
         avatarUrl = config.userAvatarUrl
+      } else {
+        // Process the uploaded files
         
         
-        
-        
-    }else{
-        console.log(avatar);
         const files = req.files as { [filename:string]:Express.Multer.File[]}
-        const avatarFileName = files.avatar[0].filename
-        const avatarFilePath= path.resolve(__dirname,'../../public/data/uploads')
-
-        avatarUrl = await cloudinary.uploader.upload(avatarFilePath,{
-            filename_override:avatarFileName,
-            folder:'tech_note_admin_avatar'
-        })
-
+        
+        // const avatarFileName = files.avatar[0].filename
+        // const avatarFilePath= path.resolve(__dirname,'../../public/data/uploads')
+        const avatarLocalPath = files?.avatar[0]?.path;
         
         
-    }
+        try {
+            
+            avatarUrl = await uploadOnCloudinary(avatarLocalPath,'techNote_Admin_Avatar')
+            console.log(avatarUrl);
+            
+        } catch (error) {
+            console.log(error);
 
-    // jwt token
+            avatarUrl =''
+            return next(createHttpError(400,'Failed to upload to cloudinary '))
+        }
+      }
+      
 
-    const accessToken =  sign({sub: name},config.jwtAccessSecret as string , {expiresIn:'2d', algorithm:"HS256",})
+    
 
-    const refreshToken = sign({sub:name},config.jwtRefreshSecret as string, {expiresIn:'7d',algorithm:"HS256"}) 
-
+    // jwt token  
+    
+    const refreshToken = await sign({sub:name},config.jwtRefreshSecret as string, {expiresIn:'7d',algorithm:"HS256"}) 
+   
 
     let newAdmin:AdminInterface
 
     try {
-        newAdmin = await Admin.create({
+        console.log('create admin in db');
+        
+         newAdmin = await Admin.create({
             name,
             email,
             password:hashedPassword,
             avatar:avatarUrl,
             refreshToken
         })
+
+        
         
     } catch (error) {
-        return createHttpError(500,"Error while creating admin in DB")
+        
+        return next(createHttpError(500,"Error while creating admin in DB"))
     }
     
-    
-    
+    const accessToken = await sign({sub: name ,id:newAdmin._id},config.jwtAccessSecret as string , {expiresIn:'2d', algorithm:"HS256",})
 
-    // const adminAvatarMineType = req.files?.avatar
-
-    // const uploadResult = await cloudinary.uploader.upload(filepath,{
-    //     filename_override:__filename,
-    //     folder:'admin-avatar',
-    //     format
-    // })
-
-    // Token generation JWT
-    
-    // create new admin in db
-
-    // let newAdmin:AdminInterface
-
-    // try {
-    //     newAdmin = await Admin.create({
-    //         name,
-    //         email,
-    //         password:hashedPassword,
-    //         avatar,
-    //         refreshToken
-    //     })
-        
-    // } catch (error) {
-    //     return createHttpError(500,"Error while creating admin in DB")
-    // }
-
-
-    res.status(201).json({message:'Admin is created successfully',accessToken:accessToken})
+    res.status(201).json({message:'Admin is created successfully',accessToken:accessToken,id:newAdmin._id,url:avatarUrl})
 
 }
+
+
 
 const loginAdmin =async(req:Request,res:Response,next:NextFunction)=>{
 
