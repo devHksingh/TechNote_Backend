@@ -1,15 +1,17 @@
 import { NextFunction, Request, Response } from "express";
 import { Admin } from "./admin.Model";
 import createHttpError from "http-errors";
-import bcryptPassword from "../utils/bcrytHashpasword";
+import bcryptPassword, { bcryptComparePassword } from "../utils/bcrytHashpasword";
 import { AdminInterface } from "../types/adminTypes";
 import cloudinary from "../config/cloudinary";
 import { config } from "../config/config";
 import path from "node:path";
 import fs from 'node:fs'
-import { sign } from "jsonwebtoken";
+import { JwtPayload, sign } from "jsonwebtoken";
 import { uploadOnCloudinary } from "../utils/uploadOnCloudinary";
-
+import jwt from 'jsonwebtoken'
+import genrateAccessToken from "../utils/jwtAccessToken";
+import {decodeAccessTokenAndCheckExpiry} from '../utils/decodeJwtTokenAndCheckExpiry'
 
 
 const createAdmin =async(req:Request,res:Response,next:NextFunction)=>{
@@ -80,7 +82,7 @@ const createAdmin =async(req:Request,res:Response,next:NextFunction)=>{
 
     // jwt token  
     
-    const refreshToken = await sign({sub:name},config.jwtRefreshSecret as string, {expiresIn:'7d',algorithm:"HS256"}) 
+    const refreshToken =  sign({sub:name},config.jwtRefreshSecret as string, {expiresIn:'7d',algorithm:"HS256"}) 
    
 
     let newAdmin:AdminInterface
@@ -103,9 +105,9 @@ const createAdmin =async(req:Request,res:Response,next:NextFunction)=>{
         return next(createHttpError(500,"Error while creating admin in DB"))
     }
     
-    const accessToken = await sign({sub: name ,id:newAdmin._id},config.jwtAccessSecret as string , {expiresIn:'2d', algorithm:"HS256",})
+    const accessToken =  sign({id:newAdmin._id},config.jwtAccessSecret as string , {expiresIn:'120', algorithm:"HS256",})
 
-    res.status(201).json({message:'Admin is created successfully',accessToken:accessToken,id:newAdmin._id,url:avatarUrl})
+    res.status(201).json({message:'Admin is created successfully',accessToken:`Bearer ${accessToken}`})
 
 }
 
@@ -121,7 +123,111 @@ const loginAdmin =async(req:Request,res:Response,next:NextFunction)=>{
     // send response message with access token
     // cookie?
 
-    res.status(200).json({message:'Admin login successfully',token:"access token"})
+    const {email,password} = req.body
+    console.log(req.headers);
+    
+    const authHeader = (req.headers.authorization)?.split(' ')[1]
+    console.log(authHeader);
+    
+    
+    
+    
+    
+
+    // verify email is register in DB?
+    let user
+
+    try {
+         user = await Admin.findOne({email:email})
+    
+        if(!user){
+            return next(createHttpError(404,"User not found"))
+    
+        }
+    } catch (error) {
+        return next(createHttpError(500,"DB CONNECTION PROBLEM"))
+    }
+    const userPassowrd = user.password
+    const isMatchPassword = await bcryptComparePassword(password,userPassowrd)
+    if(!isMatchPassword){
+        return next(createHttpError(400,'Invalid Credentials'))
+    }
+
+    const result = decodeAccessTokenAndCheckExpiry(authHeader as string,{id:user._id})
+    console.log(result);
+    
+
+    // check jwt expiry
+    // let decodeToken 
+    // try {
+    //      if(authHeader){
+    //         decodeToken = jwt.verify(authHeader,config.jwtAccessSecret as string)
+    //      }
+        
+    //     } catch (error) {
+    //     return next(createHttpError(400,'Invalid token'))
+    // }
+
+    // const isExpiredAccessToken = Date.now() >= decodeToken.exp *1000
+    
+    // let newAccessToken
+    // if(decodeToken){
+    //     const payload = decodeToken as JwtPayload
+    //     console.log(payload.exp);
+    //     const payloadExp = payload.exp
+    //     if(payloadExp){
+    //         const isExpiredAccessToken = Date.now() >= payloadExp *1000
+    //         console.log(isExpiredAccessToken)
+
+    //         if(!isExpiredAccessToken){
+    //              newAccessToken = genrateAccessToken({id:user._id})
+    //         }
+    //         // const currentTime = Date.now()
+    //         // if (payloadExp < currentTime) {
+    //         //     // return { isExpired: true }; // Token is expired
+    //         //     console.log('{ isExpired: true }')
+    //         //   } else {
+    //         //     // return { isExpired: false }; // Token is valid, return decoded data
+    //         //     console.log('{ isExpired: false }')
+    //         //   }
+    //     }
+        
+
+    // }
+    // check if refreshToken is expired
+
+    // let newRefreshToken
+    // const oldRefresh
+    
+    /*
+    function verifyJwtToken(token, secretKey) {
+  try {
+    const decoded = jwt.verify(token, secretKey);
+    const currentTime = Date.now() / 1000; // Convert milliseconds to seconds
+
+    // Check if token expiration (exp) is in the future
+    if (decoded.exp < currentTime) {
+      return { isExpired: true }; // Token is expired
+    } else {
+      return { isExpired: false, decoded }; // Token is valid, return decoded data
+    }
+  } catch (error) {
+    // Handle JWT verification errors (e.g., invalid signature, malformed token)
+    console.error('Error verifying JWT token:', error);
+    return { isExpired: true }; // Consider expired for security reasons
+  }
+}
+    */
+
+
+    
+
+        
+    
+    
+
+
+    res.status(200).json({message:'Admin login successfully'})
 }
 
 const logoutAdmin = async (req:Request,res:Response,next:NextFunction)=>{
@@ -131,3 +237,5 @@ const logoutAdmin = async (req:Request,res:Response,next:NextFunction)=>{
 }
 
 export {createAdmin,loginAdmin,logoutAdmin}
+
+
