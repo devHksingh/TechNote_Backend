@@ -7,8 +7,10 @@ import { config } from "../config/config";
 
 const authenticate = (req:Request,res:Response,next:NextFunction)=>{
     const token = req.header('Authorization')
-    // if(token?.startsWith('Bearer '))
-    if((!token)&&(!(token?.startsWith('Bearer ')))){
+    
+    if(!(token && (token?.startsWith('Bearer ')))){
+        
+        
         return next(createHttpError(401,'Auth token is required'))
     }
     // req.header('Authorization') = token.split(' ')[1]
