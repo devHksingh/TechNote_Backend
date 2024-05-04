@@ -8,3 +8,9 @@ async function  bcryptPassword(password:string){
 }
 
 export default bcryptPassword
+
+
+export async function bcryptComparePassword(password:string,registerUserPassword:string){
+    const isMatchPassword = await bcrypt.compare(password,registerUserPassword)
+    return isMatchPassword
+}
