@@ -1,4 +1,6 @@
-import { body } from "express-validator";
+import { body, header } from "express-validator";
+
+
 
 const schema =[
     body('email')
@@ -7,6 +9,12 @@ const schema =[
     body('password')
         .isLength({min:4})
         .withMessage('password is required and must be at least 4 characters long'),
+
+    
+    header('Authorization')
+        .isString()   
+        .notEmpty() 
+        
 ]
 
 export {schema as adminLoginSchema}
