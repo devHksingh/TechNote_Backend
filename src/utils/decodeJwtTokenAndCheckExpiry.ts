@@ -24,21 +24,32 @@ const decodeAccessTokenAndCheckExpiry = (token:string,tokenPayload:{})=>{
 
 
 const decodeRefreshTokenAndCheckExpiry = (token:string,tokenPayload:{})=>{
-    const decodedToken = jwt.decode(token)
-    if(!decodedToken){
-        return {isInvalid:true,message:'Invalid Token'}
-    }
-    const payload = decodedToken as JwtPayload
-    const payloadExp = payload.exp
-    // check expiry
-    if(payloadExp){
-        const isExpiredRefreshToken = Date.now() >= payloadExp *1000
-        if(isExpiredRefreshToken){
-            const newRefreshToken = sign(tokenPayload,config.jwtRefreshSecret as string ,{expiresIn:'2d', algorithm:"HS256",}) 
-            return {isTokenExp:true,message:'New access token',refreshToken:`Bearer ${newRefreshToken}`}
+    try {
+        const decodedToken = jwt.verify(token,config.jwtRefreshSecret as string)
+        if(!decodedToken){
+            return {isInvalid:true,message:'Invalid Token'}
         }
         return {isTokenExp:false, message:"Token not expired",refreshToken:`Bearer ${token}`}
+    } catch (error) {
+        if(error instanceof jwt.TokenExpiredError){
+            const newRefreshToken = sign(tokenPayload,config.jwtRefreshSecret as string ,{expiresIn:'7d', algorithm:"HS256",}) 
+            return {isTokenExp:true,message:'New access token',refreshToken:`Bearer ${newRefreshToken}`}
+        }
     }
+    // if(!decodedToken){
+    //     return {isInvalid:true,message:'Invalid Token'}
+    // }
+    // const payload = decodedToken as JwtPayload
+    // const payloadExp = payload.exp
+    // check expiry
+    // if(payloadExp){
+    //     const isExpiredRefreshToken = Date.now() >= payloadExp *1000
+    //     if(isExpiredRefreshToken){
+    //         const newRefreshToken = sign(tokenPayload,config.jwtRefreshSecret as string ,{expiresIn:'2d', algorithm:"HS256",}) 
+    //         return {isTokenExp:true,message:'New access token',refreshToken:`Bearer ${newRefreshToken}`}
+    //     }
+    //     return {isTokenExp:false, message:"Token not expired",refreshToken:`Bearer ${token}`}
+    // }
 
 }
 

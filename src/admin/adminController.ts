@@ -11,7 +11,7 @@ import { JwtPayload, sign } from "jsonwebtoken";
 import { uploadOnCloudinary } from "../utils/uploadOnCloudinary";
 import jwt from 'jsonwebtoken'
 import genrateAccessToken from "../utils/jwtAccessToken";
-import {decodeAccessTokenAndCheckExpiry} from '../utils/decodeJwtTokenAndCheckExpiry'
+import {decodeAccessTokenAndCheckExpiry, decodeRefreshTokenAndCheckExpiry} from '../utils/decodeJwtTokenAndCheckExpiry'
 
 
 const createAdmin =async(req:Request,res:Response,next:NextFunction)=>{
@@ -82,7 +82,7 @@ const createAdmin =async(req:Request,res:Response,next:NextFunction)=>{
 
     // jwt token  
     
-    const refreshToken =  sign({sub:name},config.jwtRefreshSecret as string, {expiresIn:'7d',algorithm:"HS256"}) 
+    const refreshToken =  sign({sub:name},config.jwtRefreshSecret as string, {expiresIn:'60',algorithm:"HS256"}) 
    
 
     let newAdmin:AdminInterface
@@ -152,9 +152,58 @@ const loginAdmin =async(req:Request,res:Response,next:NextFunction)=>{
     if(!isMatchPassword){
         return next(createHttpError(400,'Invalid Credentials'))
     }
+        
+    // check access token
 
-    const result = decodeAccessTokenAndCheckExpiry(authHeader as string,{id:user._id})
-    console.log(result);
+    const isValidAccessToken = decodeAccessTokenAndCheckExpiry(authHeader as string,{id:user._id})
+    console.log(isValidAccessToken);
+
+
+    let newAccessToken
+    if(isValidAccessToken?.isInvalid){
+        return next(createHttpError(402,`Invalid Token`))
+    }
+    if(isValidAccessToken?.isTokenExp){
+        console.log(isValidAccessToken.message);
+        console.log('1111111111111111111111');
+        
+        
+         newAccessToken = isValidAccessToken.accessToken
+    }else if(!isValidAccessToken?.isTokenExp){
+        newAccessToken = authHeader
+    }
+    console.log(newAccessToken);
+
+    // check refresh token
+
+    const isValidRefreshToken= decodeRefreshTokenAndCheckExpiry(user.refreshToken,{id:user._id})
+
+    let newRefreshToken
+
+    if(isValidRefreshToken?.isInvalid){
+        return next(createHttpError(403,`Invalid Token`))
+    }
+    if(isValidRefreshToken?.isTokenExp){
+        console.log(`${isValidRefreshToken.message}`);
+        
+        newRefreshToken = isValidRefreshToken.refreshToken
+        // update new refresh token in db
+        try {
+            user.refreshToken = newRefreshToken
+            
+            
+            await user.save({validateBeforeSave:false})
+            console.log('new resfresh token : ',newRefreshToken);
+        } catch (error) {
+            next(createHttpError(400,`DB error falied to update refresh token`))
+        }
+    }
+
+
+
+
+
+    
     
 
     // check jwt expiry
