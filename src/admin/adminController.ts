@@ -82,7 +82,7 @@ const createAdmin =async(req:Request,res:Response,next:NextFunction)=>{
 
     // jwt token  
     
-    const refreshToken =  sign({sub:name},config.jwtRefreshSecret as string, {expiresIn:'60',algorithm:"HS256"}) 
+    const refreshToken =  sign({sub:name},config.jwtRefreshSecret as string, {expiresIn:'7d',algorithm:"HS256"}) 
    
 
     let newAdmin:AdminInterface
@@ -105,7 +105,7 @@ const createAdmin =async(req:Request,res:Response,next:NextFunction)=>{
         return next(createHttpError(500,"Error while creating admin in DB"))
     }
     
-    const accessToken =  sign({id:newAdmin._id},config.jwtAccessSecret as string , {expiresIn:'120', algorithm:"HS256",})
+    const accessToken =  sign({id:newAdmin._id},config.jwtAccessSecret as string , {expiresIn:'2d', algorithm:"HS256",})
 
     res.status(201).json({message:'Admin is created successfully',accessToken:`Bearer ${accessToken}`})
 
