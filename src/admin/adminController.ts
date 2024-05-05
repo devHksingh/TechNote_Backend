@@ -107,7 +107,7 @@ const createAdmin =async(req:Request,res:Response,next:NextFunction)=>{
     // 
     const accessToken =  genrateAccessToken({id:newAdmin._id})
 
-    res.status(201).json({message:'Admin is created successfully',accessToken:`Bearer ${accessToken}`})
+    res.status(201).json({message:'Admin is created successfully',accessToken:`Bearer ${accessToken}`,id:newAdmin._id})
 
 }
 
@@ -215,34 +215,47 @@ const loginAdmin =async(req:Request,res:Response,next:NextFunction)=>{
     
 
 
-    res.status(200).json({message:'Admin login successfully', newAccessToken:newAccessToken})
+    res.status(200).json({message:'Admin login successfully', newAccessToken:newAccessToken,id:user._id})
 }
 
 const logoutAdmin = async (req:Request,res:Response,next:NextFunction)=>{
     // find admin with _id and reove Refresh Token from db
-    const {email,password} = req.body
-    let user
+    const {id} = req.body
+    
+    try {
+        await Admin.findByIdAndUpdate(
+            id,
+            {
+                $set:{
+                    refreshToken: '',
+                },
+                
+            },
+            {
+                new:true,
+            }
+        )
+    } catch (error) {
+        return next(createHttpError(400,'Invalid credentails'))
+    }
 
-    try {
-         user = await Admin.findOne({email:email})
+    // try {
+    //      user = await Admin.findOne({email:email})
     
-        if(!user){
-            return next(createHttpError(404,"User not found"))
+    //     if(!user){
+    //         return next(createHttpError(404,"User not found"))
     
-        }
-    } catch (error) {
-        return next(createHttpError(500,"DB CONNECTION PROBLEM"))
-    }
-    try {
-        user.refreshToken = ''
-        await user.save({validateBeforeSave:false})
-    } catch (error) {
-        return next(createHttpError(400,'unable to logOut try it again!'))
-    }
-    if(!user.refreshToken){
-        console.log('refresh token deleted $$$$$$');
-        
-    }
+    //     }
+    // } catch (error) {
+    //     return next(createHttpError(500,"DB CONNECTION PROBLEM"))
+    // }
+    // try {
+    //     user.refreshToken = ''
+    //     await user.save({validateBeforeSave:false})
+    // } catch (error) {
+    //     return next(createHttpError(400,'unable to logOut try it again!'))
+    // }
+   
     
     res.status(200).json({message:'Admin logout successfully'})
 }

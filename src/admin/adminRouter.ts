@@ -5,6 +5,7 @@ import validate_Admin_req_schema from '../middlewares/validate_Admin_register_re
 import { upload } from '../middlewares/multer.middleware'
 import { adminLoginSchema } from './admin_login_schema'
 import authenticate from '../middlewares/authenticate'
+import { adminLogoutSchema } from './admin_logOut_schema'
 
 
 const  adminRouter = express.Router()
@@ -30,6 +31,6 @@ adminRouter.post(
     authenticate,
     loginAdmin
 )
-adminRouter.post('/logout',logoutAdmin)
+adminRouter.post('/logout',adminLogoutSchema,validate_Admin_req_schema,logoutAdmin)
 
 export default adminRouter
