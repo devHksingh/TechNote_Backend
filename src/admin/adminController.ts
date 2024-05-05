@@ -95,6 +95,7 @@ const createAdmin =async(req:Request,res:Response,next:NextFunction)=>{
             email,
             password:hashedPassword,
             avatar:avatarUrl,
+            role:'Admin',
             refreshToken
         })
 

@@ -19,6 +19,10 @@ const adminSchema = new Schema<AdminInterface>({
         type:String,
         
     },
+    role:{
+        type:String,
+        required:true,
+    },
     refreshToken:{
         type:String,
         required:true
