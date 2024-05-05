@@ -128,12 +128,7 @@ const loginAdmin =async(req:Request,res:Response,next:NextFunction)=>{
     
     const authHeader = (req.headers.authorization)?.split(' ')[1]
     console.log(authHeader);
-    
-    
-    
-    
-    
-
+     
     // verify email is register in DB?
     let user
 
@@ -156,7 +151,7 @@ const loginAdmin =async(req:Request,res:Response,next:NextFunction)=>{
     // check access token
 
     const isValidAccessToken = decodeAccessTokenAndCheckExpiry(authHeader as string,{id:user._id})
-    console.log(isValidAccessToken);
+
 
 
     let newAccessToken
@@ -164,16 +159,11 @@ const loginAdmin =async(req:Request,res:Response,next:NextFunction)=>{
         return next(createHttpError(402,`Invalid Token`))
     }
     if(isValidAccessToken?.isTokenExp){
-        console.log(isValidAccessToken.message);
-        console.log('1111111111111111111111');
-        
-        
          newAccessToken = isValidAccessToken.accessToken
     }else if(!isValidAccessToken?.isTokenExp){
         newAccessToken = authHeader
     }
-    console.log(newAccessToken);
-
+    
     // check refresh token
 
     const isValidRefreshToken= decodeRefreshTokenAndCheckExpiry(user.refreshToken,{id:user._id})
@@ -184,99 +174,21 @@ const loginAdmin =async(req:Request,res:Response,next:NextFunction)=>{
         return next(createHttpError(403,`Invalid Token`))
     }
     if(isValidRefreshToken?.isTokenExp){
-        console.log(`${isValidRefreshToken.message}`);
-        
+              
         newRefreshToken = isValidRefreshToken.refreshToken
         // update new refresh token in db
         try {
             user.refreshToken = newRefreshToken
-            
-            
+                     
             await user.save({validateBeforeSave:false})
-            console.log('new resfresh token : ',newRefreshToken);
+            
         } catch (error) {
             next(createHttpError(400,`DB error falied to update refresh token`))
         }
     }
 
 
-
-
-
-    
-    
-
-    // check jwt expiry
-    // let decodeToken 
-    // try {
-    //      if(authHeader){
-    //         decodeToken = jwt.verify(authHeader,config.jwtAccessSecret as string)
-    //      }
-        
-    //     } catch (error) {
-    //     return next(createHttpError(400,'Invalid token'))
-    // }
-
-    // const isExpiredAccessToken = Date.now() >= decodeToken.exp *1000
-    
-    // let newAccessToken
-    // if(decodeToken){
-    //     const payload = decodeToken as JwtPayload
-    //     console.log(payload.exp);
-    //     const payloadExp = payload.exp
-    //     if(payloadExp){
-    //         const isExpiredAccessToken = Date.now() >= payloadExp *1000
-    //         console.log(isExpiredAccessToken)
-
-    //         if(!isExpiredAccessToken){
-    //              newAccessToken = genrateAccessToken({id:user._id})
-    //         }
-    //         // const currentTime = Date.now()
-    //         // if (payloadExp < currentTime) {
-    //         //     // return { isExpired: true }; // Token is expired
-    //         //     console.log('{ isExpired: true }')
-    //         //   } else {
-    //         //     // return { isExpired: false }; // Token is valid, return decoded data
-    //         //     console.log('{ isExpired: false }')
-    //         //   }
-    //     }
-        
-
-    // }
-    // check if refreshToken is expired
-
-    // let newRefreshToken
-    // const oldRefresh
-    
-    /*
-    function verifyJwtToken(token, secretKey) {
-  try {
-    const decoded = jwt.verify(token, secretKey);
-    const currentTime = Date.now() / 1000; // Convert milliseconds to seconds
-
-    // Check if token expiration (exp) is in the future
-    if (decoded.exp < currentTime) {
-      return { isExpired: true }; // Token is expired
-    } else {
-      return { isExpired: false, decoded }; // Token is valid, return decoded data
-    }
-  } catch (error) {
-    // Handle JWT verification errors (e.g., invalid signature, malformed token)
-    console.error('Error verifying JWT token:', error);
-    return { isExpired: true }; // Consider expired for security reasons
-  }
-}
-    */
-
-
-    
-
-        
-    
-    
-
-
-    res.status(200).json({message:'Admin login successfully'})
+    res.status(200).json({message:'Admin login successfully', newAccessToken:newAccessToken})
 }
 
 const logoutAdmin = async (req:Request,res:Response,next:NextFunction)=>{
