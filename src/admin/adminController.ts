@@ -10,7 +10,7 @@ import fs from 'node:fs'
 import { JwtPayload, sign } from "jsonwebtoken";
 import { uploadOnCloudinary } from "../utils/uploadOnCloudinary";
 import jwt from 'jsonwebtoken'
-import genrateAccessToken from "../utils/jwtAccessToken";
+import  {genrateAccessToken, genrateRefreshToken } from "../utils/jwtAccessToken";
 import {decodeAccessTokenAndCheckExpiry, decodeRefreshTokenAndCheckExpiry} from '../utils/decodeJwtTokenAndCheckExpiry'
 
 
@@ -80,9 +80,9 @@ const createAdmin =async(req:Request,res:Response,next:NextFunction)=>{
 
     
 
-    // jwt token  
+    // jwt token  sign({sub:name},config.jwtRefreshSecret as string, {expiresIn:'7d',algorithm:"HS256"})
     
-    const refreshToken =  sign({sub:name},config.jwtRefreshSecret as string, {expiresIn:'7d',algorithm:"HS256"}) 
+    const refreshToken =   genrateRefreshToken({sub:name})
    
 
     let newAdmin:AdminInterface
@@ -104,8 +104,8 @@ const createAdmin =async(req:Request,res:Response,next:NextFunction)=>{
         
         return next(createHttpError(500,"Error while creating admin in DB"))
     }
-    
-    const accessToken =  sign({id:newAdmin._id},config.jwtAccessSecret as string , {expiresIn:'2d', algorithm:"HS256",})
+    // 
+    const accessToken =  genrateAccessToken({id:newAdmin._id})
 
     res.status(201).json({message:'Admin is created successfully',accessToken:`Bearer ${accessToken}`})
 
@@ -124,10 +124,7 @@ const loginAdmin =async(req:Request,res:Response,next:NextFunction)=>{
     // cookie?
 
     const {email,password} = req.body
-    console.log(req.headers);
     
-    const authHeader = (req.headers.authorization)?.split(' ')[1]
-    console.log(authHeader);
      
     // verify email is register in DB?
     let user
@@ -149,43 +146,73 @@ const loginAdmin =async(req:Request,res:Response,next:NextFunction)=>{
     }
         
     // check access token
-
-    const isValidAccessToken = decodeAccessTokenAndCheckExpiry(authHeader as string,{id:user._id})
-
-
-
+    const authHeader = (req.headers.authorization)?.split(' ')[1]
+    console.log(authHeader);
     let newAccessToken
-    if(isValidAccessToken?.isInvalid){
-        return next(createHttpError(402,`Invalid Token`))
-    }
-    if(isValidAccessToken?.isTokenExp){
-         newAccessToken = isValidAccessToken.accessToken
-    }else if(!isValidAccessToken?.isTokenExp){
-        newAccessToken = authHeader
+
+    if(!authHeader){
+        console.log('NO ACCESS TOKEN FOUND');
+        
+        newAccessToken = genrateAccessToken({id:user._id})
+    }else{
+        console.log('VERIFY ACCESS TOKEN');
+        
+        const isValidAccessToken = decodeAccessTokenAndCheckExpiry(authHeader as string,{id:user._id})
+    
+        if(isValidAccessToken?.isInvalid){
+            return next(createHttpError(402,`Invalid Token`))
+        }
+        if(isValidAccessToken?.isTokenExp){
+            console.log('EXP ACCESS TOKEN');
+            
+             newAccessToken = isValidAccessToken.accessToken
+        }else if(!isValidAccessToken?.isTokenExp){
+            newAccessToken = authHeader
+        }
+
     }
     
     // check refresh token
 
-    const isValidRefreshToken= decodeRefreshTokenAndCheckExpiry(user.refreshToken,{id:user._id})
+    const userRefreshToken = user.refreshToken
 
-    let newRefreshToken
-
-    if(isValidRefreshToken?.isInvalid){
-        return next(createHttpError(403,`Invalid Token`))
-    }
-    if(isValidRefreshToken?.isTokenExp){
-              
-        newRefreshToken = isValidRefreshToken.refreshToken
-        // update new refresh token in db
+    if(!userRefreshToken){
+        console.log('NO REFRESH TOKEN FOUND');
+        const newRefreshToken1 = genrateRefreshToken({id:user._id})
         try {
-            user.refreshToken = newRefreshToken
-                     
+            user.refreshToken = newRefreshToken1
             await user.save({validateBeforeSave:false})
-            
+            console.log('SAVE NEW REFRESH TOKEN ON DB');
         } catch (error) {
             next(createHttpError(400,`DB error falied to update refresh token`))
         }
+    }else{
+        console.log('VALIDATE REFRESH TOKEN ');
+        const isValidRefreshToken= decodeRefreshTokenAndCheckExpiry(user.refreshToken,{id:user._id})
+
+        let newRefreshToken
+    
+        if(isValidRefreshToken?.isInvalid){
+            return next(createHttpError(403,`Invalid Token`))
+        }
+        if(isValidRefreshToken?.isTokenExp){
+                  
+            newRefreshToken = isValidRefreshToken.refreshToken
+            // update new refresh token in db
+            try {
+                user.refreshToken = newRefreshToken
+                         
+                await user.save({validateBeforeSave:false})
+                console.log('REGENRATE REFRESH TOKEN ON DB');
+                
+            } catch (error) {
+                next(createHttpError(400,`DB error falied to update refresh token`))
+            }
+        }
+        
     }
+
+    
 
 
     res.status(200).json({message:'Admin login successfully', newAccessToken:newAccessToken})
@@ -193,7 +220,30 @@ const loginAdmin =async(req:Request,res:Response,next:NextFunction)=>{
 
 const logoutAdmin = async (req:Request,res:Response,next:NextFunction)=>{
     // find admin with _id and reove Refresh Token from db
+    const {email,password} = req.body
+    let user
 
+    try {
+         user = await Admin.findOne({email:email})
+    
+        if(!user){
+            return next(createHttpError(404,"User not found"))
+    
+        }
+    } catch (error) {
+        return next(createHttpError(500,"DB CONNECTION PROBLEM"))
+    }
+    try {
+        user.refreshToken = ''
+        await user.save({validateBeforeSave:false})
+    } catch (error) {
+        return next(createHttpError(400,'unable to logOut try it again!'))
+    }
+    if(!user.refreshToken){
+        console.log('refresh token deleted $$$$$$');
+        
+    }
+    
     res.status(200).json({message:'Admin logout successfully'})
 }
 

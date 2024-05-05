@@ -11,9 +11,9 @@ const schema =[
         .withMessage('password is required and must be at least 4 characters long'),
 
     
-    header('Authorization')
-        .isString()   
-        .notEmpty() 
+    // header('Authorization')
+    //     .isString()   
+    //     .notEmpty() 
         
 ]
 

@@ -20,15 +20,12 @@ const authenticate = (req:Request,res:Response,next:NextFunction)=>{
         const isValidAndDecoded = jwt.verify(userAccessToken, config.jwtAccessSecret as string);
         next(); // Proceed if verification is successful
     } catch (error) {
-        // console.error( error === 'TokenExpiredError'); // Avoid logging entire token
-        // return next(createHttpError(401, `${error.TokenExpiredError}`));
-        if(error instanceof jwt.TokenExpiredError){
-            
-            
+        
+        if(error instanceof jwt.TokenExpiredError){ 
             next()
         }else{
             console.error(error); // Log other errors
-            return next(createHttpError(401, 'Unauthorized'));
+            return next(createHttpError(401, 'Unauthorized token'));
         }
     }
 
