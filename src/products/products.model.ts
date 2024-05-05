@@ -1,7 +1,8 @@
 import mongoose, { Schema } from "mongoose";
+import { ProductInterface } from "../types/productTypes";
 
 
-const productSchema = new Schema({
+const productSchema = new Schema<ProductInterface>({
     name:{
         type:String,
         required:true,
