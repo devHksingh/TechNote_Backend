@@ -22,6 +22,7 @@ const authenticate = (req:Request,res:Response,next:NextFunction)=>{
     } catch (error) {
         
         if(error instanceof jwt.TokenExpiredError){ 
+            
             next()
         }else{
             console.error(error); // Log other errors

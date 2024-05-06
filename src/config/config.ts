@@ -13,6 +13,7 @@ const _config = {
    cloudinaryApiSecret:process.env.CLOUDINARY_CLOUD_API_SECRET,
 
    userAvatarUrl:process.env.USER_AVATAR_URL,
+   productImgId:process.env.PRODUCT_IMG_ID,
 }
 
 export const config = Object.freeze(_config)

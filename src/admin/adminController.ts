@@ -18,7 +18,7 @@ const createAdmin =async(req:Request,res:Response,next:NextFunction)=>{
 
     
 
-    const {name,email,password,avatar} = req.body
+    const {name,email,password} = req.body
 
     // check if admin already exist ->db call
 
@@ -106,7 +106,7 @@ const createAdmin =async(req:Request,res:Response,next:NextFunction)=>{
         return next(createHttpError(500,"Error while creating admin in DB"))
     }
     // 
-    const accessToken =  genrateAccessToken({id:newAdmin._id})
+    const accessToken =  genrateAccessToken({id:newAdmin._id,role:'Admin'})
 
     res.status(201).json({message:'Admin is created successfully',accessToken:`Bearer ${accessToken}`,id:newAdmin._id})
 
@@ -148,17 +148,18 @@ const loginAdmin =async(req:Request,res:Response,next:NextFunction)=>{
         
     // check access token
     const authHeader = (req.headers.authorization)?.split(' ')[1]
-    console.log(authHeader);
+    
     let newAccessToken
 
     if(!authHeader){
         console.log('NO ACCESS TOKEN FOUND');
         
-        newAccessToken = genrateAccessToken({id:user._id})
+        newAccessToken = genrateAccessToken({id:user._id,role:'Admin'})
     }else{
-        console.log('VERIFY ACCESS TOKEN');
+        console.log(' ACCESS TOKEN found');
         
-        const isValidAccessToken = decodeAccessTokenAndCheckExpiry(authHeader as string,{id:user._id})
+        const isValidAccessToken = decodeAccessTokenAndCheckExpiry(authHeader as string,{id:user._id,role:'Admin'})
+        console.log(' ACCESS TOKEN viryfication done');
     
         if(isValidAccessToken?.isInvalid){
             return next(createHttpError(402,`Invalid Token`))
@@ -168,6 +169,8 @@ const loginAdmin =async(req:Request,res:Response,next:NextFunction)=>{
             
              newAccessToken = isValidAccessToken.accessToken
         }else if(!isValidAccessToken?.isTokenExp){
+            console.log('access token = auth header');
+            
             newAccessToken = authHeader
         }
 
@@ -179,7 +182,7 @@ const loginAdmin =async(req:Request,res:Response,next:NextFunction)=>{
 
     if(!userRefreshToken){
         console.log('NO REFRESH TOKEN FOUND');
-        const newRefreshToken1 = genrateRefreshToken({id:user._id})
+        const newRefreshToken1 = genrateRefreshToken({id:user._id,role:'Admin'})
         try {
             user.refreshToken = newRefreshToken1
             await user.save({validateBeforeSave:false})
@@ -189,7 +192,7 @@ const loginAdmin =async(req:Request,res:Response,next:NextFunction)=>{
         }
     }else{
         console.log('VALIDATE REFRESH TOKEN ');
-        const isValidRefreshToken= decodeRefreshTokenAndCheckExpiry(user.refreshToken,{id:user._id})
+        const isValidRefreshToken= decodeRefreshTokenAndCheckExpiry(user.refreshToken,{id:user._id,role:'Admin'})
 
         let newRefreshToken
     

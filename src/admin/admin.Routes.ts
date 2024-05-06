@@ -1,7 +1,7 @@
 import express from 'express'
 import { createAdmin, loginAdmin, logoutAdmin } from './adminController'
 import { adminRegisterSchema } from './admin_register_schema'
-import validate_Admin_req_schema from '../middlewares/validate_Admin_register_req_schema'
+import validate_Admin_req_schema from '../middlewares/validate_Express_Validator_schema'
 import { upload } from '../middlewares/multer.middleware'
 import { adminLoginSchema } from './admin_login_schema'
 import authenticate from '../middlewares/authenticate'
@@ -28,7 +28,7 @@ adminRouter.post(
     '/login',
     adminLoginSchema,
     validate_Admin_req_schema,
-    authenticate,
+    // authenticate,
     loginAdmin
 )
 adminRouter.post('/logout',adminLogoutSchema,validate_Admin_req_schema,logoutAdmin)
