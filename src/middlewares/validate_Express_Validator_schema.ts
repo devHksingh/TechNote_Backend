@@ -3,7 +3,7 @@ import { validationResult } from "express-validator";
 import createHttpError from "http-errors";
 
 
-const validate_Admin_req_schema = (req:Request,res:Response,next:NextFunction)=>{
+const validate_Express_Validator_schema = (req:Request,res:Response,next:NextFunction)=>{
     const errors = validationResult(req)
     if(!errors.isEmpty()){
         // const [{msg}] = errors.array()
@@ -14,4 +14,4 @@ const validate_Admin_req_schema = (req:Request,res:Response,next:NextFunction)=>
     next()
 }
 
-export default validate_Admin_req_schema
+export default validate_Express_Validator_schema

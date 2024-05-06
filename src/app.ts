@@ -25,7 +25,7 @@ app.get('/api/v1',(req:Request,res:Response,next:NextFunction)=>{
 app.use('/api/v1/admin',adminRouter)
 
 // product router
-app.use('api/v1/product',productRouter)
+app.use('api/v1/products',productRouter)
 
 //  Global error handler
 app.use(globalErrorHandler)

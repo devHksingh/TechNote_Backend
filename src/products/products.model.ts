@@ -27,6 +27,10 @@ const productSchema = new Schema<ProductInterface>({
         type:Number,
         required:true
     },
+    totalCost:{
+        type:Number,
+        required:true
+    },
     addedBy:{
         type:String,
         required:true

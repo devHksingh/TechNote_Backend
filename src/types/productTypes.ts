@@ -9,6 +9,7 @@ export interface ProductInterface {
     addedBy:string;
     brandName:string;
     perPiecePrice:number;
+    totalCost:number;
     createdAt:Date;
     updatedAt:Date;
 }

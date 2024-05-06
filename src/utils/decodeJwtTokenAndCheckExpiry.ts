@@ -5,14 +5,16 @@ import { genrateAccessToken, genrateRefreshToken } from './jwtAccessToken'
 const decodeAccessTokenAndCheckExpiry = (token:string,tokenPayload:{})=>{
     try {
         const decodedToken = jwt.verify(token,config.jwtAccessSecret as string)
-        if(!decodedToken){
-            return {isInvalid:true,message:'Invalid Token'}
-        }
+        // if(!decodedToken){
+        //     return {isInvalid:true,message:'Invalid Token'}
+        // }
         return {isTokenExp:false, message:"Token not expired",accessToken:`Bearer ${token}`}
     } catch (error) {
         if(error instanceof jwt.TokenExpiredError){
             const newAccessToken = genrateAccessToken(tokenPayload)
             return {isTokenExp:true,message:'New access token',accessToken:`Bearer ${newAccessToken}`}
+        }else{
+            return {isInvalid:true,message:'Invalid Token'}
         }
     }
     // if(!decodedToken){
