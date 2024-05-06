@@ -33,4 +33,19 @@ const uploadOnCloudinary = async(localFilePath:string,folderName:string) => {
   }
 }
 
-export  {uploadOnCloudinary}
+// get an image from Cloudinary 
+
+async function getImageUrl(publicId:string) {
+  try {
+    // Generate a URL for the image with the given public ID
+    const imageUrl =  cloudinary.url(publicId);
+
+    // Return the image URL
+    return imageUrl;
+  } catch (error) {
+    console.error('Error getting image URL:', error);
+    return null;
+  }
+}
+
+export  {uploadOnCloudinary,getImageUrl}
