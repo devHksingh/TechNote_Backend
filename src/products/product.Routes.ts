@@ -1,4 +1,4 @@
-import express from 'express'
+import express, { NextFunction, Request, Response } from 'express'
 import { upload } from '../middlewares/multer.middleware'
 import { createProductSchema } from './product_register_schema'
 import validate_Product_req_schema from '../middlewares/validate_Express_Validator_schema'
@@ -22,7 +22,7 @@ productRouter.post(
     createProduct
 )
 
-productRouter.get('/',(req,res,next)=>{
+productRouter.get('/',(req:Request,res:Response,next:NextFunction)=>{
     res.status(200).json({message:'list of products'})
 })
 
