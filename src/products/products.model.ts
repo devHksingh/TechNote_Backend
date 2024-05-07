@@ -3,7 +3,7 @@ import { ProductInterface } from "../types/productTypes";
 
 
 const productSchema = new Schema<ProductInterface>({
-    name:{
+    productName:{
         type:String,
         required:true,
         
@@ -15,7 +15,7 @@ const productSchema = new Schema<ProductInterface>({
         type:String,     
     },
     quantity:{
-        type:Number,
+        type:String,
         required:true,
     },
     brandName:{
@@ -24,11 +24,11 @@ const productSchema = new Schema<ProductInterface>({
         
     },
     perPiecePrice:{
-        type:Number,
+        type:String,
         required:true
     },
     totalCost:{
-        type:Number,
+        type:String,
         required:true
     },
     addedBy:{

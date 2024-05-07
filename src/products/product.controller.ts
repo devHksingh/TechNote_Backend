@@ -4,11 +4,55 @@ import createHttpError from "http-errors"
 import { config } from "../config/config"
 import { getImageUrl, uploadOnCloudinary } from "../utils/uploadOnCloudinary"
 import jwt from 'jsonwebtoken'
+import { AuthRequest } from "../middlewares/authenticate"
+import { Admin } from "../admin/admin.Model"
 
 
 const createProduct = async (req:Request,res:Response,next:NextFunction)=>{
-    const {name,description,quantity,brandName,perPiecePrice,totalCost,addedBy} = req.body
+    const {productName,description,quantity,brandName,perPiecePrice,totalCost,addedBy} = req.body
     console.log(req.body);
+
+    // check product is already exist in db
+
+    try {
+        
+        const product = await Product.findOne({productName:productName})
+        if(product){
+            return next(createHttpError(400,"product already exits with this name"))
+        }
+    } catch (error) {
+        return next(createHttpError(500,"Error while getting product details"))
+    }
+
+    // getting id and role from token through middleware
+
+    const _req = req as AuthRequest
+    console.log('_req',_req.userId);
+    console.log('_req',_req.userRole);
+
+    const id = _req.userId
+    const role = _req.userRole
+    // find user based on Role Admin|Manager
+    let user
+    
+    if (role === 'Admin'){
+        try {
+            user = await Admin.findById(id).select("-password -refreshToken")
+            
+        } catch (error) {
+            return next(createHttpError(400,'Unable to find user'))
+
+        }
+
+    }else{
+        try {
+            // DB call to find Manger details
+        } catch (error) {
+            return next(createHttpError(400,'Unable to find user'))
+        }
+    }
+
+    
 
     
 // (req.headers.authorization)?.split(' ')[1]
@@ -25,15 +69,7 @@ const createProduct = async (req:Request,res:Response,next:NextFunction)=>{
     // }
     
 
-    try {
-        
-        const product = await Product.findOne({name:name})
-        if(product){
-            return next(createHttpError(400,"product already exits with this name"))
-        }
-    } catch (error) {
-        return next(createHttpError(500,"Error while getting product details"))
-    }
+    
 
     // upload  on cloudinary 
 
@@ -42,7 +78,9 @@ const createProduct = async (req:Request,res:Response,next:NextFunction)=>{
     if(req.files && Object.keys(req.files).length === 0){
         console.log('no product img uploaded');
         
-        productImgUrl = getImageUrl(config.productImgId as string)
+        productImgUrl = await getImageUrl(config.productImgId as string)
+
+        
         console.log(productImgUrl);
         
     }else{
@@ -59,8 +97,95 @@ const createProduct = async (req:Request,res:Response,next:NextFunction)=>{
             return next(createHttpError(400,'Failed to upload to cloudinary '))
         }
     }
+    
+    // covert if value in string
 
-    res.status(200).json({message:'product creat successfully', req:req.body})
+    // creating new Product
+    
+    // let newProduct
+    // try {
+    //     newProduct = await Product.create({
+    //         productName,
+    //         productImg:productImgUrl,
+    //         description,
+    //         quantity,
+    //         brandName,
+    //         perPiecePrice,
+    //         totalCost,
+    //         addedBy:user?.name||'Unknown'
+    //     })
+    // } catch (error) {
+    //     return next(createHttpError(402,'Unable to create the product on db'))
+    // }
+    // if(type === 'string'){
+        
+    //    const Newquantity = parseInt(quantity)
+    //    const NewperPiecePrice = parseInt(perPiecePrice)
+    //    const NewtotalCost = parseInt(totalCost)
+    // //    const Newquantity = parseInt(quantity)
+    //     console.log('hi');
+        
+    //     console.log(Newquantity,NewperPiecePrice,NewtotalCost);
+        
+
+     
+    // }
+
+    let newProduct
+    try {
+        newProduct = await Product.create({
+            productName,
+            productImg:productImgUrl,
+            description,
+            quantity,
+            brandName,
+            perPiecePrice,
+            totalCost,
+            addedBy:user?.name 
+
+        })
+    } catch (error) {
+        return next(createHttpError(402,'Unable to create the product on db'))
+    }
+    
+    /*
+    productName:{
+        type:String,
+        required:true,
+        
+    },
+    productImg:{
+        type:String
+    },
+    description:{
+        type:String,     
+    },
+    quantity:{
+        type:String,
+        required:true,
+    },
+    brandName:{
+        type:String,
+        required:true,
+        
+    },
+    perPiecePrice:{
+        type:String,
+        required:true
+    },
+    totalCost:{
+        type:String,
+        required:true
+    },
+    addedBy:{
+        type:String,
+        required:true
+    }
+    
+    */
+    
+
+    res.status(200).json({message:'product created successfully', req:req.body,id:newProduct?._id})
     
 }
 

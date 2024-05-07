@@ -2,14 +2,14 @@
 
 export interface ProductInterface {
     _id:string;
-    name:string;
+    productName:string;
     productImg:string;
     description:string;
-    quantity:number;
+    quantity:string;
     addedBy:string;
     brandName:string;
-    perPiecePrice:number;
-    totalCost:number;
+    perPiecePrice:string;
+    totalCost:string;
     createdAt:Date;
     updatedAt:Date;
 }

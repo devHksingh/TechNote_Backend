@@ -1,7 +1,7 @@
 import { body, header } from "express-validator";
 
 const schema = [
-    body('name')
+    body('productName')
         .isString()
         .notEmpty(),
     body('productImg')
@@ -13,17 +13,17 @@ const schema = [
         .notEmpty()
         .optional(),
     body('quantity')
-        .isNumeric(),
+        .notEmpty(),
     body('brandName')    
         .isString()
         .notEmpty(),
     body('perPiecePrice')
-        .isNumeric(),
-    body('totalCost')
-        .isNumeric(),
-    body('addedBy')
-        .isString()
         .notEmpty(),
+    body('totalCost')
+        .notEmpty(),
+    // body('addedBy')
+    //     .isString()
+    //     .notEmpty(),
 
     header('Authorization')
         .isString()   
