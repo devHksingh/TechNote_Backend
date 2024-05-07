@@ -259,7 +259,7 @@ const deleteProduct = async (req:Request,res:Response,next:NextFunction)=>{
             // console.log(productImgPublicId);
             
             
-            if(!(productImgPublicId === config.productImgId)){
+            if(productImgPublicId === config.productImgId){
                 console.log('img id is same');
                 // delete product only
                 try {
