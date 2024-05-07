@@ -189,6 +189,28 @@ const createProduct = async (req:Request,res:Response,next:NextFunction)=>{
     
 }
 
+const getProductList = async (req:Request,res:Response,next:NextFunction)=>{
+    
+    const _req = req as AuthRequest
+
+    const id = _req.userId
+    const role = _req.userRole
+    let productList
+
+    if((role ==='Admin')||(role === 'Manager')||(role === 'Employee')){
+        try {
+            productList = await Product.find({})
+        } catch (error) {
+            return next(createHttpError(400,'Unable to fetch product list.try it again!'))
+        }
+    }else{
+        return next(createHttpError(400,'Unauthrize request'))
+    }
+    res.status(200).json({message:'List products',productList:productList})
+
+}
+
 export {
-    createProduct
+    createProduct,
+    getProductList,
 }
