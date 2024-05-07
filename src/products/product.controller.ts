@@ -6,6 +6,7 @@ import { getImageUrl, uploadOnCloudinary } from "../utils/uploadOnCloudinary"
 import jwt from 'jsonwebtoken'
 import { AuthRequest } from "../middlewares/authenticate"
 import { Admin } from "../admin/admin.Model"
+import cloudinary from "../config/cloudinary"
 
 
 const createProduct = async (req:Request,res:Response,next:NextFunction)=>{
@@ -234,8 +235,68 @@ const getSingleProduct = async (req:Request,res:Response,next:NextFunction)=>{
     res.status(200).json({message:'Single product',productDetail:productDetail})
 }
 
+const deleteProduct = async (req:Request,res:Response,next:NextFunction)=>{
+    const _req = req as AuthRequest
+    const role = _req.userRole
+    const id = _req.userId
+    const productId = req.params.productId
+    let productDetail
+
+    if((role ==='Admin')||(role === 'Manager')){
+       
+        try {
+            productDetail=  await Product.findOne({_id:productId})
+            const productImgSlpits = productDetail?.productImg.split('/')
+            const productImgPublicId = productImgSlpits?.at(-3) + '/'+ productImgSlpits?.at(-2)+'/'+(productImgSlpits?.at(-1)?.split('?').at(-2))
+            // console.log(productImgSlpits);
+            // console.log((productImgSlpits?.at(-1))?.split('?').at(0));
+            // console.log(((productImgSlpits?.at(-1))?.split('?').at(0))=== config.productImgId);
+            // console.log(config.productImgId);
+            // console.log(productImgPublicId);
+            console.log(productImgPublicId === config.productImgId);
+            console.log('$$$$$$$$$$$$$$$$$$$$');
+            
+            // console.log(productImgPublicId);
+            
+            
+            if(!(productImgPublicId === config.productImgId)){
+                console.log('img id is same');
+                // delete product only
+                try {
+                    await Product.deleteOne({_id:productDetail?._id})
+                } catch (error) {
+                    return next(createHttpError(400,'unable to delete product try it again!'))
+                }
+                
+            }else{
+                console.log('img id not same');
+                try {
+                    await cloudinary.uploader.destroy(productImgPublicId)
+                    try {
+                        await Product.deleteOne({_id:productDetail?._id})
+                    } catch (error) {
+                        return next(createHttpError(400,'unable to delete product try it again!'))
+                    }
+                } catch (error) {
+                    return next(createHttpError(400,'unable to delete product Image try it again!'))
+                }
+            }
+            
+        } catch (error) {
+            return next(createHttpError(400,'Unable to fetch product list.try it again!'))
+        }
+    }else{
+        return next(createHttpError(400,'Unauthrize request'))
+    }
+
+
+
+    res.status(200).json({message:'Deleted successfully',productDetail:productDetail})
+}
+
 export {
     createProduct,
     getProductList,
     getSingleProduct,
+    deleteProduct,
 }
