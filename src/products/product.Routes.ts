@@ -3,7 +3,7 @@ import { upload } from '../middlewares/multer.middleware'
 import { createProductSchema } from './product_register_schema'
 import validate_Product_req_schema from '../middlewares/validate_Express_Validator_schema'
 import authenticate from '../middlewares/authenticate'
-import { createProduct, getProductList } from './product.controller'
+import { createProduct, getProductList, getSingleProduct } from './product.controller'
 import { getProductListSchema } from './products_get_schema'
 
 
@@ -24,10 +24,18 @@ productRouter.post(
 )
 
 productRouter.get('/',
-getProductListSchema,
-validate_Product_req_schema,
-authenticate,
-getProductList)
+    getProductListSchema,
+    validate_Product_req_schema,
+    authenticate,
+    getProductList)
+    
+productRouter.get(
+    '/:productId',
+    getProductListSchema,
+    validate_Product_req_schema,
+    authenticate,
+    getSingleProduct
+)
 
 
 
