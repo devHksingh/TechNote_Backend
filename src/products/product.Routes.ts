@@ -3,7 +3,8 @@ import { upload } from '../middlewares/multer.middleware'
 import { createProductSchema } from './product_register_schema'
 import validate_Product_req_schema from '../middlewares/validate_Express_Validator_schema'
 import authenticate from '../middlewares/authenticate'
-import { createProduct } from './product.controller'
+import { createProduct, getProductList } from './product.controller'
+import { getProductListSchema } from './products_get_schema'
 
 
 
@@ -22,9 +23,11 @@ productRouter.post(
     createProduct
 )
 
-productRouter.get('/',(req:Request,res:Response,next:NextFunction)=>{
-    res.status(200).json({message:'list of products'})
-})
+productRouter.get('/',
+getProductListSchema,
+validate_Product_req_schema,
+authenticate,
+getProductList)
 
 
 
