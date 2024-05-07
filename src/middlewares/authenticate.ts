@@ -29,9 +29,9 @@ const authenticate = async(req:Request,res:Response,next:NextFunction)=>{
         
         const {id,role} = isValidAndDecoded
 
-        const adminProfile = await Admin.findById(id).select("-password -refreshToken")
+        // const adminProfile = await Admin.findById(id).select("-password -refreshToken")
         // req.user = adminProfile
-        console.log('admin',adminProfile);
+        // console.log('admin',adminProfile);
         
         _req.userId = id as string
         _req.userRole = role as string
