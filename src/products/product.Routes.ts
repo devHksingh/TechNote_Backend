@@ -46,21 +46,14 @@ productRouter.delete(
     deleteProduct
 )
 
-// productRouter.patch('/:productId',
-// // getProductListSchema,
-// // validate_Product_req_schema,
-// authenticate,
-// upload.fields([
-//     {name:'productImg',maxCount:1}
-// ]),
-// updateProduct
-// )
 
 productRouter.patch(
     '/:productId',
     upload.fields([
         {name:'productImg',maxCount:1}
     ]),
+    getProductListSchema,
+    validate_Product_req_schema,
     authenticate,
     updateProduct
 )
