@@ -149,41 +149,7 @@ const createProduct = async (req:Request,res:Response,next:NextFunction)=>{
         return next(createHttpError(402,'Unable to create the product on db'))
     }
     
-    /*
-    productName:{
-        type:String,
-        required:true,
-        
-    },
-    productImg:{
-        type:String
-    },
-    description:{
-        type:String,     
-    },
-    quantity:{
-        type:String,
-        required:true,
-    },
-    brandName:{
-        type:String,
-        required:true,
-        
-    },
-    perPiecePrice:{
-        type:String,
-        required:true
-    },
-    totalCost:{
-        type:String,
-        required:true
-    },
-    addedBy:{
-        type:String,
-        required:true
-    }
     
-    */
     
 
     res.status(200).json({message:'product created successfully', req:req.body,id:newProduct?._id})
@@ -294,9 +260,106 @@ const deleteProduct = async (req:Request,res:Response,next:NextFunction)=>{
     res.status(200).json({message:'Deleted successfully',productDetail:productDetail})
 }
 
+const updateProduct = async (req:Request,res:Response,next:NextFunction)=>{
+    // Goal=> update => prouct img | price |quantity |description
+
+    const {description,quantity,perPiecePrice,totalCost} = req.body
+
+    
+
+    const _req = req as AuthRequest
+
+    const id = _req.userId;
+    const role = _req.userRole
+    const productId = req.params.productId
+    console.log(role);
+    
+    let productDetail
+    // check req done by authorized person only =>Admin|Manager
+    if((role ==='Admin')||(role === 'Manager')){
+        try {
+            productDetail = await Product.findById(productId)
+        } catch (error) {
+            return next(createHttpError(400,'Unable to fetch product.try it again!'))
+        }
+    }else{
+        return next(createHttpError(400,'Unauthrize request'))
+    }
+
+    const newProductDescription = description?`${description}`:`${productDetail?.description}`
+    const newProductQuantity = quantity?`${quantity}`:`${productDetail?.quantity}`
+    const newProductPerPiecePrice = perPiecePrice?`${perPiecePrice}`:`${productDetail?.perPiecePrice}`
+    const newProductTotalCost = totalCost?`${totalCost}`:`${productDetail?.totalCost}`
+
+
+    // check if product img req is there
+
+    let newProductImgUrl
+    const oldProductImgUrl = productDetail?.productImg
+
+    if(!(req.files && Object.keys(req.files).length === 0)){
+        // const files = req.files as {[filename:string]:Express.Multer.File[]}
+        // const productImgLocalPath = files?.productImg[0]?.path
+
+        const files = req.files as {[filename:string]:Express.Multer.File[]}
+        const newProductImgLocalPath = files?.productImg[0]?.path
+        
+      
+        
+        // upload new img on cloudinary
+        try {
+            // newProductImgUrl= await uploadOnCloudinary(newProductImgLocalPath,'techNote_ProductImg')
+            // console.log(newProductImgUrl);
+            newProductImgUrl = await uploadOnCloudinary(newProductImgLocalPath,'techNote_ProductImg')
+            console.log('new product img url is genrated',newProductImgUrl);
+            // await cloudinary.uploader.destroy(productImgPublicId)
+            // get 
+            
+            let productImgSlpits = newProductImgUrl?.split('/')
+            let productImgPublicId = productImgSlpits?.at(-3) + '/'+ productImgSlpits?.at(-2)+'/'+(productImgSlpits?.at(-1)?.split('?').at(-2))
+            console.log(productImgPublicId);
+
+            if(productImgPublicId !== config.productImgId){
+                //  delete img in cloudnary
+                // await cloudinary.uploader.destroy(productImgPublicId)
+                // oldProductImgUrl
+                productImgSlpits = oldProductImgUrl?.split('/')
+                productImgPublicId = productImgSlpits?.at(-2) + '/'+ (productImgSlpits?.at(-1)?.split('.').at(-2))
+                console.log('old img',productImgPublicId);
+                
+                await cloudinary.uploader.destroy(productImgPublicId)
+                
+            }
+            
+            
+        } catch (error) {
+            newProductImgUrl = oldProductImgUrl
+            return next(createHttpError(400,'Failed to upload to cloudinary '))
+        }
+    }
+
+    const updatedProduct = await Product.findOneAndUpdate(
+        {
+            _id:productId
+        },
+        {
+            description:newProductDescription,
+            quantity:newProductQuantity,
+            perPiecePrice:newProductPerPiecePrice,
+            totalCost:newProductTotalCost,
+            productImg:
+
+        }
+    )
+
+
+    res.status(200).json({message:'Deleted successfully',productDetail:productDetail})
+}
+
 export {
     createProduct,
     getProductList,
     getSingleProduct,
     deleteProduct,
+    updateProduct
 }
