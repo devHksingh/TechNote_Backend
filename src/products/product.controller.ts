@@ -347,13 +347,13 @@ const updateProduct = async (req:Request,res:Response,next:NextFunction)=>{
             quantity:newProductQuantity,
             perPiecePrice:newProductPerPiecePrice,
             totalCost:newProductTotalCost,
-            productImg:
+            productImg:newProductImgUrl?`${newProductImgUrl}`:`${oldProductImgUrl}`
 
         }
     )
 
 
-    res.status(200).json({message:'Deleted successfully',productDetail:productDetail})
+    res.status(200).json({message:'Update successfully',productDetail:productDetail})
 }
 
 export {
