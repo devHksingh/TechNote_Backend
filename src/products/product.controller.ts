@@ -316,7 +316,7 @@ const updateProduct = async (req:Request,res:Response,next:NextFunction)=>{
             // get 
             
             let productImgSlpits = newProductImgUrl?.split('/')
-            let productImgPublicId = productImgSlpits?.at(-3) + '/'+ productImgSlpits?.at(-2)+'/'+(productImgSlpits?.at(-1)?.split('?').at(-2))
+            let productImgPublicId = productImgSlpits?.at(-2) + '/'+ (productImgSlpits?.at(-1)?.split('.').at(-2))
             console.log(productImgPublicId);
 
             if(productImgPublicId !== config.productImgId){
@@ -337,7 +337,7 @@ const updateProduct = async (req:Request,res:Response,next:NextFunction)=>{
             return next(createHttpError(400,'Failed to upload to cloudinary '))
         }
     }
-
+    const newProductUpdatedImg = newProductImgUrl?`${newProductImgUrl}`:`${oldProductImgUrl}`
     const updatedProduct = await Product.findOneAndUpdate(
         {
             _id:productId
@@ -347,7 +347,7 @@ const updateProduct = async (req:Request,res:Response,next:NextFunction)=>{
             quantity:newProductQuantity,
             perPiecePrice:newProductPerPiecePrice,
             totalCost:newProductTotalCost,
-            productImg:newProductImgUrl?`${newProductImgUrl}`:`${oldProductImgUrl}`
+            productImg:newProductUpdatedImg
 
         }
     )
