@@ -1,5 +1,5 @@
 import express from 'express'
-import { createAdmin, loginAdmin, logoutAdmin } from './adminController'
+import { changeCurrentPassword, createAdmin, loginAdmin, logoutAdmin } from './adminController'
 import { adminRegisterSchema } from './admin_register_schema'
 import validate_Admin_req_schema from '../middlewares/validate_Express_Validator_schema'
 import { upload } from '../middlewares/multer.middleware'
@@ -31,6 +31,13 @@ adminRouter.post(
     // authenticate,
     loginAdmin
 )
+
+adminRouter.post(
+    "/changePassword",
+    authenticate,
+    changeCurrentPassword
+)
+
 adminRouter.post('/logout',adminLogoutSchema,validate_Admin_req_schema,logoutAdmin)
 
 export default adminRouter
