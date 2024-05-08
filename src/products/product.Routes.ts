@@ -3,8 +3,9 @@ import { upload } from '../middlewares/multer.middleware'
 import { createProductSchema } from './product_register_schema'
 import validate_Product_req_schema from '../middlewares/validate_Express_Validator_schema'
 import authenticate from '../middlewares/authenticate'
-import { createProduct, deleteProduct, getProductList, getSingleProduct } from './product.controller'
+import { createProduct, deleteProduct, getProductList, getSingleProduct, updateProduct } from './product.controller'
 import { getProductListSchema } from './products_get_schema'
+
 
 
 
@@ -43,6 +44,25 @@ productRouter.delete(
     validate_Product_req_schema,
     authenticate,
     deleteProduct
+)
+
+// productRouter.patch('/:productId',
+// // getProductListSchema,
+// // validate_Product_req_schema,
+// authenticate,
+// upload.fields([
+//     {name:'productImg',maxCount:1}
+// ]),
+// updateProduct
+// )
+
+productRouter.patch(
+    '/:productId',
+    upload.fields([
+        {name:'productImg',maxCount:1}
+    ]),
+    authenticate,
+    updateProduct
 )
 
 
