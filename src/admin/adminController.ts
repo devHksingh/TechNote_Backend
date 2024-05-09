@@ -12,6 +12,8 @@ import { uploadOnCloudinary } from "../utils/uploadOnCloudinary";
 import jwt from 'jsonwebtoken'
 import  {genrateAccessToken, genrateRefreshToken } from "../utils/jwtAccessToken";
 import {decodeAccessTokenAndCheckExpiry, decodeRefreshTokenAndCheckExpiry} from '../utils/decodeJwtTokenAndCheckExpiry'
+import { AuthRequest } from "../middlewares/authenticate";
+import { PasswordAuthRequest } from "../middlewares/changePassword.middleware";
 
 
 const createAdmin =async(req:Request,res:Response,next:NextFunction)=>{
@@ -108,7 +110,7 @@ const createAdmin =async(req:Request,res:Response,next:NextFunction)=>{
     // 
     const accessToken =  genrateAccessToken({id:newAdmin._id,role:'Admin'})
 
-    res.status(201).json({message:'Admin is created successfully',accessToken:`Bearer ${accessToken}`,id:newAdmin._id})
+    res.status(201).json({message:'Admin is created successfully',accessToken:accessToken,id:newAdmin._id})
 
 }
 
@@ -264,6 +266,67 @@ const logoutAdmin = async (req:Request,res:Response,next:NextFunction)=>{
     res.status(200).json({message:'Admin logout successfully'})
 }
 
-export {createAdmin,loginAdmin,logoutAdmin}
+const changeCurrentPassword = async (req:Request,res:Response,next:NextFunction)=>{
+
+    const { oldPassword, newPassword } = req.body
+    const _req = req as AuthRequest
+    const id = _req.userId
+
+    const _reqPassword = req as PasswordAuthRequest
+
+    const hashedOldPassword = _reqPassword.userOldPassword
+    const hashedNewPassword = _reqPassword.userNewPassword
+    console.log('hashedNewPassword : ',hashedNewPassword);
+    
+
+    // check oldpassword
+    let user
+    
+
+    try {
+        user = await Admin.findByIdAndUpdate(
+            {
+                _id:id
+            },
+            {
+                password:hashedNewPassword
+            },
+            {
+                new:true
+            }
+        )
+        console.log('new password in db:',user?.password);
+        
+    } catch (error) {
+        next(createHttpError(400,'unable to update password'))
+    }
+
+    // try {
+    //     user = await Admin.findById(id)
+        
+    //     if(user){
+    //         console.log('old PASSWORD : ',user.password);
+            
+    //         user.password = hashedNewPassword
+    //         console.log('NEW HASH PASSWORD : ',hashedNewPassword);
+            
+    //         await user.save({validateBeforeSave:false})
+    //         console.log('password save');
+            
+    //     }
+    // } catch (error) {
+    //     next(createHttpError(400,'unable to update password'))
+    // }
+
+    // user?.password = hashedNewPassword
+
+    // save new password
+
+    res.status(200).json({message:'new password save successfully',newpassword:user?.password,hashNeW:hashedNewPassword})
+    
+
+}
+
+export {createAdmin,loginAdmin,logoutAdmin,changeCurrentPassword}
 
 
