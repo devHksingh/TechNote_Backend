@@ -1,9 +1,9 @@
 import { TaskInterface } from "./taskTypes";
 
 enum Role {
-    Manager = "manager",
-    Technician = "technician",
-    TechSupport = "tech_support"
+    Manager = "Manager",
+    Technician = "Technician",
+    TechSupport = "Tech_support"
   }
 
 export interface EmployeeInterface {
