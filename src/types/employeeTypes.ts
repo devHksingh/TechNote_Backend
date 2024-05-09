@@ -14,7 +14,7 @@ export interface EmployeeInterface {
     avatar:string;
     refreshToken:string;
     role:Role;
-    salary:number;
+    salary:string;
     taskHistory:TaskInterface;
     createdAt:Date;
     updatedAt:Date;

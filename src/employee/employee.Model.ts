@@ -38,7 +38,7 @@ const employeeSchema = new mongoose.Schema<EmployeeInterface>({
         ref:'Task'
     }],
     salary:{
-        type:Number,
+        type:String,
         required:true
     }
 },{timestamps:true})
