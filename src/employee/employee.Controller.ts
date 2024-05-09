@@ -208,7 +208,32 @@ const loginEmployee =  async (req:Request,res:Response,next:NextFunction)=>{
     res.status(200).json({message:`${user.role} login successfully`, newAccessToken:newAccessToken,id:user._id})
 }
 
+const logoutEmployee = async (req:Request,res:Response,next:NextFunction)=>{
+
+    const {id} = req.body
+    
+    try {
+        await Employee.findByIdAndUpdate(
+            id,
+            {
+                $set:{
+                    refreshToken: '',
+                },
+                
+            },
+            {
+                new:true,
+            }
+        )
+    } catch (error) {
+        return next(createHttpError(400,'Invalid credentails'))
+    }
+
+    res.status(200).json({message:'Employee logout successfully'})
+}
+
 export {
     createEmployee,
     loginEmployee,
+    logoutEmployee
 }
