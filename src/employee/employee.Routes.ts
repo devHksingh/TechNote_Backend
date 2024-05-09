@@ -1,10 +1,11 @@
 import express from 'express'
 import { upload } from '../middlewares/multer.middleware'
-import { createEmployee, loginEmployee } from './employee.Controller'
+import { createEmployee, loginEmployee, logoutEmployee } from './employee.Controller'
 import authenticate from '../middlewares/authenticate'
 import { employeeRegisterSchema } from './employeeRegisterSchema'
 import validate_Employee_req_schema from '../middlewares/validate_Express_Validator_schema'
 import { employeeLoginSchema } from './employee_login_schema'
+import { employeeLogoutSchema } from './employee_logOut_schema'
 
 const employeeRouter = express.Router()
 
@@ -28,6 +29,13 @@ employeeRouter.post(
     employeeLoginSchema,
     validate_Employee_req_schema, 
     loginEmployee
+)
+
+employeeRouter.post(
+    '/logout',
+    employeeLogoutSchema,
+    validate_Employee_req_schema,
+    logoutEmployee
 )
 
 
