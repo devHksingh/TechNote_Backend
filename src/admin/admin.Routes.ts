@@ -6,6 +6,8 @@ import { upload } from '../middlewares/multer.middleware'
 import { adminLoginSchema } from './admin_login_schema'
 import authenticate from '../middlewares/authenticate'
 import { adminLogoutSchema } from './admin_logOut_schema'
+import changePassword from '../middlewares/changePassword.middleware'
+import { adminPasswordChangeSchema } from './admin_passwordChange_schema'
 
 
 const  adminRouter = express.Router()
@@ -34,7 +36,10 @@ adminRouter.post(
 
 adminRouter.post(
     "/changePassword",
+    adminPasswordChangeSchema,
+    validate_Admin_req_schema,
     authenticate,
+    changePassword,
     changeCurrentPassword
 )
 
