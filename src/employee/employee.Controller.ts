@@ -8,6 +8,7 @@ import { EmployeeInterface } from "../types/employeeTypes";
 import { AuthRequest } from "../middlewares/authenticate";
 import {decodeAccessTokenAndCheckExpiry, decodeRefreshTokenAndCheckExpiry} from '../utils/decodeJwtTokenAndCheckExpiry'
 import bcryptPassword, { bcryptComparePassword } from "../utils/bcrytHashpasword";
+import { PasswordAuthRequest } from "../middlewares/changePassword.middleware";
 
 
 const createEmployee = async (req:Request,res:Response,next:NextFunction)=>{
@@ -231,9 +232,69 @@ const logoutEmployee = async (req:Request,res:Response,next:NextFunction)=>{
 
     res.status(200).json({message:'Employee logout successfully'})
 }
+// changeCurrentPassword
+const changeCurrentPassword = async (req:Request,res:Response,next:NextFunction)=>{
+    const {oldPassword,newPassword} = req.body
+    // const _reqPassword = req as PasswordAuthRequest
+    // const hashedNewPassword = _reqPassword.userNewPassword
+    // const hashedOldPassword = _reqPassword.userOldPassword
+
+    if(!oldPassword || !newPassword){
+        return next(createHttpError(400,'Both new and old password required'))
+    }
+    if(oldPassword === newPassword){
+        return next(createHttpError(400,'Both password required must different'))
+    }
+
+    
+    const _req = req as AuthRequest
+    const userId = _req.userId
+    const userRole = _req.userRole
+
+
+
+    let user
+    try {
+        user = await Employee.findById(userId)
+        if(!user){
+            return  next(createHttpError(400,'User Not found'))
+        }
+        console.log('------user------',user);
+        
+        console.log('old password in db:',user?.password);
+        if(!(user?.role === userRole)){
+            return  next(createHttpError(400,'Invalid user role'))
+        }
+        // validate old password 
+        try {
+            const isValidOldPassword = await bcryptComparePassword(oldPassword,user?.password as string)
+            console.log('isValidOldPassword',isValidOldPassword);
+            if(!isValidOldPassword){
+                return next(createHttpError(400,'Invalid old password'))
+            }
+            
+        } catch (error) {
+            return next(createHttpError(400,'Invalid old password'))
+        }
+        const hashedNewPassword = await bcryptPassword(newPassword);
+        console.log('----hashedNewPassword----: ',hashedNewPassword);
+        
+
+        if(user){
+            user.password = hashedNewPassword
+            user.save({validateBeforeSave:false})
+        }
+
+    } catch (error) {
+        return next(createHttpError(400,'unable to Find Employee'))
+    }
+
+    res.status(200).json({message:'new password save successfully',newpassword:user?.password})
+}
 
 export {
     createEmployee,
     loginEmployee,
-    logoutEmployee
+    logoutEmployee,
+    changeCurrentPassword
 }

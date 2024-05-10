@@ -3,6 +3,9 @@ import bcryptPassword, { bcryptComparePassword } from "../utils/bcrytHashpasword
 import createHttpError from "http-errors"
 import { AuthRequest } from "./authenticate";
 import { Admin } from "../admin/admin.Model";
+import { Employee } from "../employee/employee.Model";
+import { Client } from "../client/client.Model";
+
 
 
 
@@ -12,131 +15,196 @@ export interface PasswordAuthRequest extends Request{
 
 }
 
-// const changePassword = async(req:Request,res:Response,next:NextFunction) => {
-//     const { oldPassword, newPassword } = req.body
-//     const _req = req as AuthRequest
-//     const id=  _req.userId
-//     console.log('@ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @@@@@@@@@@@@@@@@@@');
-//     console.log('id',id);
+const changePassword = async(req: Request, res: Response, next: NextFunction)=>{
+    const {oldPassword,newPassword} = req.body
+    console.log('----------------------------MIDDLEWARE START -----------------------------');
     
-//     console.log('middleware old:',oldPassword);
-//     console.log('middleware new:',newPassword);
-    
-//     // const hashedOldPassword =await bcryptPassword(oldPassword)
-//     // const hashedNewPassword = await bcryptPassword(newPassword)
-//     // if(hashedNewPassword === hashedOldPassword){
-//     //     return next(createHttpError(400,'Enter correct newPassword'))
-//     // }
-//     let user 
-//     try {
-//         user = await Admin.findById(id)
-//         console.log('midleware change password user',user);
-        
-//     } catch (error) {
-//         return next(createHttpError(400,'Invalid User'))
-//     }
-//     try {
-//         const isValidOldPassword = await bcryptComparePassword(oldPassword,user?.password as string)
-//         console.log('isValidOldPassword',isValidOldPassword);
-        
-//         if(isValidOldPassword){
-//             const hashedNewPassword = await bcryptPassword(newPassword)
-//             const hashedOldPassword = await bcryptPassword(oldPassword)
-    
-//             const _reqPassword = req as PasswordAuthRequest
-//             _reqPassword.userOldPassword = hashedOldPassword
-//             _reqPassword.userNewPassword = hashedNewPassword
-    
-//             console.log('midleware change password _reqPassword.userOldPassword',_reqPassword.userOldPassword);
-//             console.log('midleware change password _reqPassword.userNewPassword',_reqPassword.userNewPassword);
-    
-//             console.log(_reqPassword.userNewPassword === _reqPassword.userOldPassword);
-            
-//             console.log('# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #  ##  # # #  ');
-            
-    
-//             next()
-    
-//         }
-//     } catch (error) {
-//         return next(createHttpError(400,'Invalid oldPassword'))
-//     }
-//     // if(isValidOldPassword){
-//     //     const hashedNewPassword = await bcryptPassword(newPassword)
-//     //     const hashedOldPassword = await bcryptPassword(oldPassword)
+    console.log(oldPassword,newPassword);
 
-//     //     const _reqPassword = req as PasswordAuthRequest
-//     //     _reqPassword.userOldPassword = hashedOldPassword
-//     //     _reqPassword.userNewPassword = hashedNewPassword
+    const reqUserInfo = req as AuthRequest
+    const userId = reqUserInfo.userId
+    const userRole = reqUserInfo.userRole
 
-//     //     console.log('midleware change password _reqPassword.userOldPassword',_reqPassword.userOldPassword);
-//     //     console.log('midleware change password _reqPassword.userNewPassword',_reqPassword.userNewPassword);
-
-//     //     console.log(_reqPassword.userNewPassword === _reqPassword.userOldPassword);
-        
-//     //     console.log('# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #  ##  # # #  ');
-        
-
-//     //     next()
-
-//     // }else{
-//     //     return next(createHttpError(400,'Invalid oldPassword'))
-//     // }
-//     // const _reqPassword = req as AdminAuthRequest
-
-//     // _req.userOldPassword = hashedOldPassword 
-//     // _req.userNewPassword = hashedNewPassword
-
-//     // _reqPassword.userOldPassword = hashedOldPassword as string
-//     // _reqPassword.userNewPassword = hashedNewPassword as string
-//     // next()
-// }
-
-const changePassword = async (req: Request, res: Response, next: NextFunction) => {
-    const { oldPassword, newPassword } = req.body;
-    const userId = (req as AuthRequest).userId;
-    const userRole = (req as AuthRequest).userRole
     const hashedOldPassword = await bcryptPassword(oldPassword);
+    console.log('Middleware hashedOldPassword : ',hashedOldPassword);
 
-    try {
-        const user = await Admin.findById(userId);
-        console.log('USER : ',user);
+    console.log(userId,userRole);
+
+    if (!userId || !userRole) {
+        return next(createHttpError(400,'INVALID TOKEN INFO'))
         
-        if (!user) {
-            return next(createHttpError(400, 'Invalid User'));
+    }
+    if(!(userRole === 'Admin' || 'Client' || 'Manager' || 'Technician' || 'Tech_support')){
+        return next(createHttpError(400,'Invalid userRole'))
+    }
+    
+    let user
+    if(userRole === 'Admin'){
+        try {
+            user = await Admin.findById(userId)
+        } catch (error) {
+            return next(createHttpError(400,'unable to fetch user details'))
         }
-        if((user.role === userRole) ){
-            const isPasswordCorrect = await bcryptComparePassword(oldPassword,user.password)
-                
-            if(!isPasswordCorrect){
- 
-                return next(createHttpError(400, 'Invalid Request'));
-            }
-        }else{
-            return next(createHttpError(400, 'Invalid token'));
+    }
+    if(userRole === 'Client'){
+        try {
+            user = await Client.findById(userId)
+        } catch (error) {
+            return next(createHttpError(400,'unable to fetch user details'))
+        }
+    }
+    if(userRole === 'Manager'||'Technician'||'Tech_support'){
+        try {
+            user = await Employee.findById(userId)
+        } catch (error) {
+            return next(createHttpError(400,'unable to fetch user details'))
+        }
+    }
+
+    if(user){
+
+        const isPasswordCorrect = await bcryptComparePassword(oldPassword,user.password)
+        console.log('MiddleWare isPasswordCorrect : ',isPasswordCorrect);
+                    
+        if(!isPasswordCorrect){
+
+            return next(createHttpError(400, 'Invalid old password'));
         }
 
-
-        // const isValidOldPassword = await bcryptComparePassword(oldPassword, user.password);
-        // if (!isValidOldPassword) {
-        //     return next(createHttpError(400, 'Invalid oldPassword'));
-        // }
-
-        
         const hashedNewPassword = await bcryptPassword(newPassword);
-
+    
         const reqPassword = req as PasswordAuthRequest;
         reqPassword.userOldPassword = hashedOldPassword;
         reqPassword.userNewPassword = hashedNewPassword;
 
-        // console.log('middleware change password reqPassword.userOldPassword', reqPassword.userOldPassword);
-        // console.log('middleware change password reqPassword.userNewPassword', reqPassword.userNewPassword);
+        console.log('Middleware Req Hashed Old Password : ',reqPassword.userOldPassword);
+        console.log('Middleware Req Hashed NEW Password : ',reqPassword.userNewPassword);
+        
+        
 
         next();
-
-    } catch (error) {
-        return next(createHttpError(500, 'Internal Server Error'));
+        
     }
-};
+    
+
+
+
+    
+}
+
+// const changePassword = async (req: Request, res: Response, next: NextFunction) => {
+//     const { oldPassword, newPassword } = req.body;
+//     console.log('Middleware Old :' ,oldPassword);
+//     console.log('Middleware NEW :' ,newPassword);
+    
+//     const userId = (req as AuthRequest).userId;
+//     const userRole = (req as AuthRequest).userRole
+//     const hashedOldPassword = await bcryptPassword(oldPassword);
+//     console.log('Middleware hashedOldPassword : ',hashedOldPassword);
+    
+//     let userModel: typeof Admin | typeof Client | typeof Employee;
+//     let user1
+//     if(userRole === 'Admin') { 
+//         // userModel = Admin
+//         user1 = await Admin.findById(userId)
+//     }else if(userRole === 'Client'){
+//         // userModel = Client
+//         user1 = await Client.findById(userId)
+//     }else if(userRole === 'Manager'||'Technician'||'Tech_support'){
+//         // userModel = Employee
+//         user1 = await Employee.findById(userId)
+//     }else{
+//         return next(createHttpError(400,'Invalid Info'))
+//     }
+
+//     //
+    
+//         try {
+//             // const user = await userModel.findById(userId); 
+//             const user = user1
+//             console.log('Middleware USER : ',user);
+            
+//             if (!user) {
+//                 return next(createHttpError(400, 'Invalid User'));
+//             }
+//             if((user.role === userRole) ){
+//                 const isPasswordCorrect = await bcryptComparePassword(oldPassword,user.password)
+//                   console.log('MiddleWare isPasswordCorrect : ',isPasswordCorrect);
+                    
+//                 if(!isPasswordCorrect){
+     
+//                     return next(createHttpError(400, 'Invalid Request'));
+//                 }
+                
+//             }else{
+//                 return next(createHttpError(400, 'Invalid token'));
+//             }
+    
+            
+//             const hashedNewPassword = await bcryptPassword(newPassword);
+    
+//             const reqPassword = req as PasswordAuthRequest;
+//             reqPassword.userOldPassword = hashedOldPassword;
+//             reqPassword.userNewPassword = hashedNewPassword;
+
+//             console.log('Middleware Req Hashed Old Password : ',reqPassword.userOldPassword);
+//             console.log('Middleware Req Hashed NEW Password : ',reqPassword.userNewPassword);
+            
+            
+    
+//             next();
+//             console.log('HI');
+            
+    
+//         } catch (error) {
+//             return next(createHttpError(500, 'Internal Server Error'));
+//         }
+    
+    
+    
+// };
 
 export default changePassword
+
+
+// async function dbCall(){
+//     try {
+//         const user = await userModel.findById(userId);
+//         console.log('USER : ',user);
+        
+//         if (!user) {
+//             return next(createHttpError(400, 'Invalid User'));
+//         }
+//         if((user.role === userRole) ){
+//             const isPasswordCorrect = await bcryptComparePassword(oldPassword,user.password)
+                
+//             if(!isPasswordCorrect){
+ 
+//                 return next(createHttpError(400, 'Invalid Request'));
+//             }
+//         }else{
+//             return next(createHttpError(400, 'Invalid token'));
+//         }
+
+
+//         // const isValidOldPassword = await bcryptComparePassword(oldPassword, user.password);
+//         // if (!isValidOldPassword) {
+//         //     return next(createHttpError(400, 'Invalid oldPassword'));
+//         // }
+
+        
+//         const hashedNewPassword = await bcryptPassword(newPassword);
+
+//         const reqPassword = req as PasswordAuthRequest;
+//         reqPassword.userOldPassword = hashedOldPassword;
+//         reqPassword.userNewPassword = hashedNewPassword;
+
+//         // console.log('middleware change password reqPassword.userOldPassword', reqPassword.userOldPassword);
+//         // console.log('middleware change password reqPassword.userNewPassword', reqPassword.userNewPassword);
+
+//         next();
+
+//     } catch (error) {
+//         return next(createHttpError(500, 'Internal Server Error'));
+//     }
+// }
