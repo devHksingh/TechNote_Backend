@@ -8,6 +8,8 @@ import { employeeLoginSchema } from './employee_login_schema'
 import { employeeLogoutSchema } from './employee_logOut_schema'
 import changePassword from '../middlewares/changePassword.middleware'
 import { employeePasswordChangeSchema } from './employee_PasswordChange_Schema'
+import { expressLogoutSchema } from '../middlewares/Express_Validation/express_logout_schema'
+import { expressLoginSchema } from '../middlewares/Express_Validation/express_login_schema'
 
 const employeeRouter = express.Router()
 
@@ -28,14 +30,16 @@ employeeRouter.post(
 
 employeeRouter.post(
     '/login',
-    employeeLoginSchema,
+    // employeeLoginSchema,
+    expressLoginSchema,
     validate_Employee_req_schema, 
     loginEmployee
 )
 
 employeeRouter.post(
     '/logout',
-    employeeLogoutSchema,
+    expressLogoutSchema,
+    // employeeLogoutSchema,
     validate_Employee_req_schema,
     logoutEmployee
 )
