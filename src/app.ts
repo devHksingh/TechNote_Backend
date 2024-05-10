@@ -5,6 +5,7 @@ import globalErrorHandler from "./middlewares/globalErrorHanlder"
 import adminRouter from "./admin/admin.Routes"
 import productRouter from "./products/product.Routes"
 import employeeRouter from "./employee/employee.Routes"
+import clientRouter from "./client/client.Routes"
 
 
 const app = express()
@@ -28,6 +29,9 @@ app.use('/api/v1/products',productRouter)
 
 // employee router
 app.use('/api/v1/employee',employeeRouter)
+
+// client router
+app.use('/api/v1/client',clientRouter)
 
 //  Global error handler
 app.use(globalErrorHandler)
