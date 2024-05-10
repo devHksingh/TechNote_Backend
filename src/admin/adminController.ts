@@ -266,65 +266,119 @@ const logoutAdmin = async (req:Request,res:Response,next:NextFunction)=>{
     res.status(200).json({message:'Admin logout successfully'})
 }
 
-const changeCurrentPassword = async (req:Request,res:Response,next:NextFunction)=>{
+// const changeCurrentPassword = async (req:Request,res:Response,next:NextFunction)=>{
 
-    const { oldPassword, newPassword } = req.body
-    const _req = req as AuthRequest
-    const id = _req.userId
+//     const { oldPassword, newPassword } = req.body
+//     const _req = req as AuthRequest
+//     const id = _req.userId
 
-    const _reqPassword = req as PasswordAuthRequest
+//     const _reqPassword = req as PasswordAuthRequest
 
-    const hashedOldPassword = _reqPassword.userOldPassword
-    const hashedNewPassword = _reqPassword.userNewPassword
-    console.log('hashedNewPassword : ',hashedNewPassword);
+//     const hashedOldPassword = _reqPassword.userOldPassword
+//     const hashedNewPassword = _reqPassword.userNewPassword
+//     console.log('hashedNewPassword : ',hashedNewPassword);
     
 
-    // check oldpassword
-    let user
+//     // check oldpassword
+//     let user
     
 
-    try {
-        user = await Admin.findByIdAndUpdate(
-            {
-                _id:id
-            },
-            {
-                password:hashedNewPassword
-            },
-            {
-                new:true
-            }
-        )
-        console.log('new password in db:',user?.password);
+//     try {
+//         user = await Admin.findByIdAndUpdate(
+//             {
+//                 _id:id
+//             },
+//             {
+//                 password:hashedNewPassword
+//             },
+//             {
+//                 new:true
+//             }
+//         )
+//         console.log('new password in db:',user?.password);
         
-    } catch (error) {
-        next(createHttpError(400,'unable to update password'))
+//     } catch (error) {
+//         next(createHttpError(400,'unable to update password'))
+//     }
+
+//     // try {
+//     //     user = await Admin.findById(id)
+        
+//     //     if(user){
+//     //         console.log('old PASSWORD : ',user.password);
+            
+//     //         user.password = hashedNewPassword
+//     //         console.log('NEW HASH PASSWORD : ',hashedNewPassword);
+            
+//     //         await user.save({validateBeforeSave:false})
+//     //         console.log('password save');
+            
+//     //     }
+//     // } catch (error) {
+//     //     next(createHttpError(400,'unable to update password'))
+//     // }
+
+//     // user?.password = hashedNewPassword
+
+//     // save new password
+
+//     res.status(200).json({message:'new password save successfully',newpassword:user?.password,hashNeW:hashedNewPassword})
+    
+
+// }
+
+const changeCurrentPassword =  async (req:Request,res:Response,next:NextFunction)=>{
+    const {oldPassword,newPassword} = req.body
+
+    if(!oldPassword || !newPassword){
+        return next(createHttpError(400,'Both new and old password required'))
+    }
+    if(oldPassword === newPassword){
+        return next(createHttpError(400,'Both password required must different'))
     }
 
-    // try {
-    //     user = await Admin.findById(id)
-        
-    //     if(user){
-    //         console.log('old PASSWORD : ',user.password);
-            
-    //         user.password = hashedNewPassword
-    //         console.log('NEW HASH PASSWORD : ',hashedNewPassword);
-            
-    //         await user.save({validateBeforeSave:false})
-    //         console.log('password save');
-            
-    //     }
-    // } catch (error) {
-    //     next(createHttpError(400,'unable to update password'))
-    // }
-
-    // user?.password = hashedNewPassword
-
-    // save new password
-
-    res.status(200).json({message:'new password save successfully',newpassword:user?.password,hashNeW:hashedNewPassword})
     
+    const _req = req as AuthRequest
+    const userId = _req.userId
+    const userRole = _req.userRole
 
+    let user
+    try {
+        user = await Admin.findById(userId)
+        if(!user){
+            return  next(createHttpError(400,'User Not found'))
+        }
+        console.log('------user------',user);
+        
+        console.log('old password in db:',user?.password);
+        if(!(user?.role === userRole)){
+            return  next(createHttpError(400,'Invalid user role'))
+        }
+        // validate old password 
+        try {
+            const isValidOldPassword = await bcryptComparePassword(oldPassword,user?.password as string)
+            console.log('isValidOldPassword',isValidOldPassword);
+            if(!isValidOldPassword){
+                return next(createHttpError(400,'Invalid old password'))
+            }
+            
+        } catch (error) {
+            return next(createHttpError(400,'Invalid old password'))
+        }
+        const hashedNewPassword = await bcryptPassword(newPassword);
+        console.log('----hashedNewPassword----: ',hashedNewPassword);
+        
+
+        if(user){
+            user.password = hashedNewPassword
+            user.save({validateBeforeSave:false})
+        }
+
+    } catch (error) {
+        return next(createHttpError(400,'unable to Find Employee'))
+    }
+
+    res.status(200).json({message:'new password save successfully',newpassword:user?.password})
 }
 
 export {createAdmin,loginAdmin,logoutAdmin,changeCurrentPassword}

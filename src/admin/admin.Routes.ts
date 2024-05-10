@@ -6,7 +6,7 @@ import { upload } from '../middlewares/multer.middleware'
 import { adminLoginSchema } from './admin_login_schema'
 import authenticate from '../middlewares/authenticate'
 import { adminLogoutSchema } from './admin_logOut_schema'
-import changePassword from '../middlewares/changePassword.middleware'
+import changePassword from '../middlewares/changePassword.middleware' // remove it at end of dev
 import { adminPasswordChangeSchema } from './admin_passwordChange_schema'
 
 
@@ -39,7 +39,7 @@ adminRouter.post(
     adminPasswordChangeSchema,
     validate_Admin_req_schema,
     authenticate,
-    changePassword,
+    
     changeCurrentPassword
 )
 
