@@ -95,6 +95,8 @@ const createClient = async(req:Request,res:Response,next:NextFunction)=>{
         
         
     } catch (error) {
+        console.log(error);
+        
         return next(createHttpError(400,"Error while creating client in DB"))
     }
 
