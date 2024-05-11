@@ -7,6 +7,7 @@ import jwt from 'jsonwebtoken'
 import { AuthRequest } from "../middlewares/authenticate"
 import { Admin } from "../admin/admin.Model"
 import cloudinary from "../config/cloudinary"
+import { Employee } from "../employee/employee.Model"
 
 
 const createProduct = async (req:Request,res:Response,next:NextFunction)=>{
@@ -36,21 +37,31 @@ const createProduct = async (req:Request,res:Response,next:NextFunction)=>{
     // find user based on Role Admin|Manager
     let user
     
-    if (role === 'Admin'){
-        try {
-            user = await Admin.findById(id).select("-password -refreshToken")
-            
-        } catch (error) {
-            return next(createHttpError(400,'Unable to find user'))
-
+    if (role === 'Admin'|| role === 'Manager'){
+        if(role === 'Admin'){
+            try {
+                user = await Admin.findById(id).select("-password -refreshToken")
+                if(!user){
+                    return next(createHttpError(400,'Unauthorized request'))
+                }
+            } catch (error) {
+                return next(createHttpError(400,'Unable to find user'))
+    
+            }
+        }else{
+            try {
+                // DB call to find Manger details
+                    user = await Employee.findById(id).select("-password -refreshToken")
+                    if(!user){
+                    return next(createHttpError(400,'Unauthorized request'))
+                    }
+                } catch (error) {
+                    return next(createHttpError(400,'Unable to find user'))
+                }
         }
 
     }else{
-        try {
-            // DB call to find Manger details
-        } catch (error) {
-            return next(createHttpError(400,'Unable to find user'))
-        }
+        return next(createHttpError(400,'You are not Unauthorized '))
     }
 
     
