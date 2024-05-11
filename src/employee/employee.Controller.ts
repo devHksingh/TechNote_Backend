@@ -9,6 +9,7 @@ import { AuthRequest } from "../middlewares/authenticate";
 import {decodeAccessTokenAndCheckExpiry, decodeRefreshTokenAndCheckExpiry} from '../utils/decodeJwtTokenAndCheckExpiry'
 import bcryptPassword, { bcryptComparePassword } from "../utils/bcrytHashpasword";
 import { PasswordAuthRequest } from "../middlewares/changePassword.middleware";
+import { Admin } from "../admin/admin.Model";
 
 
 const createEmployee = async (req:Request,res:Response,next:NextFunction)=>{
@@ -333,11 +334,46 @@ const getSingleEmployeeDetails = async (req:Request,res:Response,next:NextFuncti
     return res.status(200).json({message:'Single employee details',employeeDetails:employeeDetails})
 }
 
+const deleteEmployee = async (req:Request,res:Response,next:NextFunction)=>{
+    const _req = req as AuthRequest
+    const role = _req.userRole
+    const id = _req.userId
+    const employeeId  = req.params.employeeId
+    
+    // db call to delete employee 
+    
+    // only Admin is allow to delete employee from db
+
+    // verification for  Admin 
+
+    if(role === 'Admin'){
+        const admin = await Admin.findById(id).select("-password -refreshToken -email -avatar")
+        console.log(admin);
+        
+        if(!admin){
+            return next(createHttpError(400,'You are not authorize for this request'))
+        }else if(admin.role !== role){
+            return next(createHttpError(400,'You are not authorize for this request'))
+        }
+
+        try {
+            await Employee.deleteOne({_id:employeeId})
+        } catch (error) {
+            return next(createHttpError(400,'unable to delete employee try it again!'))
+        }
+
+    }
+
+    return res.status(200).json({message:'Deleted successfully'})
+
+}
+
 export {
     createEmployee,
     loginEmployee,
     logoutEmployee,
     changeCurrentPassword,
     getEmployeeList,
-    getSingleEmployeeDetails
+    getSingleEmployeeDetails,
+    deleteEmployee
 }
