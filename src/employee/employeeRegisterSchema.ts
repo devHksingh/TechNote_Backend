@@ -5,7 +5,7 @@ const schema = [
         .isString()
         .notEmpty()
         .isLength({min:2})
-        .withMessage('Admin name at least 2 characters long'),
+        .withMessage('Employee name at least 2 characters long'),
     body('email')
         .isEmail()
         .withMessage('Email must contain a valid email address'),
@@ -24,7 +24,6 @@ const schema = [
     header('Authorization')
         .isString()   
         .notEmpty() 
-
 ]
 
 export {schema as employeeRegisterSchema}
