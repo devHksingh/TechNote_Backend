@@ -6,6 +6,8 @@ import adminRouter from "./admin/admin.Routes"
 import productRouter from "./products/product.Routes"
 import employeeRouter from "./employee/employee.Routes"
 import clientRouter from "./client/client.Routes"
+import tasksRouter from "./tasks/tasks.Routes"
+import userRouter from "./testUser/user.Route"
 
 
 const app = express()
@@ -32,6 +34,12 @@ app.use('/api/v1/employee',employeeRouter)
 
 // client router
 app.use('/api/v1/client',clientRouter)
+
+// task router
+app.use('/api/v1/task',tasksRouter)
+
+// employee router
+app.use('/api/v1/user',userRouter)
 
 //  Global error handler
 app.use(globalErrorHandler)
