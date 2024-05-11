@@ -292,9 +292,52 @@ const changeCurrentPassword = async (req:Request,res:Response,next:NextFunction)
     res.status(200).json({message:'new password save successfully',newpassword:user?.password})
 }
 
+const getEmployeeList = async (req:Request,res:Response,next:NextFunction)=>{
+    const _req = req as AuthRequest
+    const role = _req.userRole
+
+    let employeeList
+
+    // db call => getting list of employee
+
+    if(role === 'Admin' || role ==='Manager'){
+
+        try {
+            employeeList = await Employee.find({}).select("-password -refreshToken")
+        } catch (error) {
+            return next(createHttpError(400,'Unable to fetch product list.try it again!'))
+        }
+    }else{
+        return next(createHttpError(400,'Unauthrize request'))
+    }
+    res.status(200).json({message:'Employee list',employeeList:employeeList})
+}
+const getSingleEmployeeDetails = async (req:Request,res:Response,next:NextFunction)=>{
+    const _req = req as AuthRequest
+    const role = _req.userRole
+    const employeeId = req.params.employeeId
+
+    let employeeDetails
+
+    // db call to get employee details
+
+    if(role=== 'Admin' || role === 'Manager'){
+        try {
+            employeeDetails = await Employee.findById(employeeId).select("-password -refreshToken")
+        } catch (error) {
+            return next(createHttpError(400,'Unable to fetch employee detail.try it again!'))
+        }
+    }else{
+        return next(createHttpError(400,'Unauthrize request'))
+    }
+    return res.status(200).json({message:'Single employee details',employeeDetails:employeeDetails})
+}
+
 export {
     createEmployee,
     loginEmployee,
     logoutEmployee,
-    changeCurrentPassword
+    changeCurrentPassword,
+    getEmployeeList,
+    getSingleEmployeeDetails
 }

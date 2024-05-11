@@ -12,9 +12,6 @@ userRouter.post(
     upload.fields([
         {name:'avatar',maxCount:1}
     ]),
-    // employeeRegisterSchema,
-    // validate_Employee_req_schema,
-    // authenticate,
     createUser
 )
 

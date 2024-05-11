@@ -190,7 +190,7 @@ const getSingleProduct = async (req:Request,res:Response,next:NextFunction)=>{
         try {
             productDetail=  await Product.findOne({_id:productId})
         } catch (error) {
-            return next(createHttpError(400,'Unable to fetch product list.try it again!'))
+            return next(createHttpError(400,'Unable to fetch product detail.try it again!'))
         }
     }else{
         return next(createHttpError(400,'Unauthrize request'))
@@ -198,7 +198,7 @@ const getSingleProduct = async (req:Request,res:Response,next:NextFunction)=>{
 
 
 
-    res.status(200).json({message:'Single product',productDetail:productDetail})
+    res.status(200).json({message:'Single product details',productDetail:productDetail})
 }
 
 const deleteProduct = async (req:Request,res:Response,next:NextFunction)=>{
