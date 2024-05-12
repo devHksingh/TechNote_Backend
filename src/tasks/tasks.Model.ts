@@ -78,10 +78,10 @@ const taskSchema = new Schema({
         type:Schema.Types.ObjectId,
         ref:'Employee'
     }],
-    clientDetail:{
+    clientDetail:[{
         type:Schema.Types.ObjectId,
         ref:'Client'
-    }
+    }]
 
 
 },{timestamps:true})
