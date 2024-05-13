@@ -108,9 +108,37 @@ const getSingleTaskDetail = async(req:Request,res:Response,next:NextFunction)=>{
     return res.status(200).json({taskDetail:taskDetail})
 }
 
+const updateStatusFlag = async(req:Request,res:Response,next:NextFunction)=>{
+    const taskId = req.params.taskId
+    const _req = req as AuthRequest
+    const role = _req.userRole
+    const {status} = req.body
+    console.log(status);
+    
+
+    if(role === 'Admin' || role === 'Manager'||role === 'Technician'||role === 'Tech_support'){
+        try {
+            const task = await Task.findById({_id:taskId})
+            if(task){
+                task.StatusFlag = status
+                await task.save({validateBeforeSave:false})
+                console.log(task.StatusFlag);
+                
+            } 
+        } catch (error) {
+            return next(createHttpError(500,'Unable to update StatusFlag.try it again!'))
+        }
+    }else{
+        return next(createHttpError(400,'Unauthorize request'))
+    }
+    return res.status(200).json({StatusFlag:status})
+}   
+
+// update paymentStatus > chnage remaingPayment
 
 export {
     createTask,
     getAllTask,
-    getSingleTaskDetail
+    getSingleTaskDetail,
+    updateStatusFlag
 }
