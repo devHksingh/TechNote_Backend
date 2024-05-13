@@ -57,7 +57,8 @@ const createTask = async (req:Request,res:Response,next:NextFunction)=>{
                 remaingPayment:totalAmountPayable,
                 paymentStatus,
                 assignEmployee:[],
-                clientDetail:[]
+                clientDetail:[],
+                // bookSlot:""
 
 
             }) 
@@ -67,7 +68,7 @@ const createTask = async (req:Request,res:Response,next:NextFunction)=>{
         } catch (error) {
             console.log(error);
             
-            return next(createHttpError(400,'UNABLE TO CREATE TASK'))
+            return next(createHttpError(500,'UNABLE TO CREATE TASK'))
         }
     }else{
         return next(createHttpError(400,'Unauthorize request'))
@@ -77,7 +78,24 @@ const createTask = async (req:Request,res:Response,next:NextFunction)=>{
     return res.status(200).json({msg:'ticket raise'})
 }
 
+const getAllTask = async(req:Request,res:Response,next:NextFunction)=>{
+
+    const _req = req as AuthRequest
+    const role = _req.userRole
+    let taskList
+    if(role === 'Admin' || role === 'Manager'||role === 'Technician'||role === 'Tech_support'){
+        try {
+            taskList = await Task.find({})
+        } catch (error) {
+            return next(createHttpError(400,'Unable to fetch task list.try it again!'))
+        }
+    }else{
+        return next(createHttpError(400,'Unauthorize request'))
+    }
+}
+
 
 export {
-    createTask
+    createTask,
+    getAllTask
 }
