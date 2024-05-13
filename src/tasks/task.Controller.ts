@@ -87,15 +87,30 @@ const getAllTask = async(req:Request,res:Response,next:NextFunction)=>{
         try {
             taskList = await Task.find({})
         } catch (error) {
-            return next(createHttpError(400,'Unable to fetch task list.try it again!'))
+            return next(createHttpError(500,'Unable to fetch task list.try it again!'))
         }
     }else{
         return next(createHttpError(400,'Unauthorize request'))
     }
+
+    return res.status(200).json({taskList:taskList})
+}
+
+const getSingleTaskDetail = async(req:Request,res:Response,next:NextFunction)=>{
+    const taskId = req.params.taskId
+    let taskDetail
+    try {
+        taskDetail = await Task.findById({_id:taskId})
+    } catch (error) {
+        return next(createHttpError(500,'Unable to fetch task list.try it again!'))
+    }
+
+    return res.status(200).json({taskDetail:taskDetail})
 }
 
 
 export {
     createTask,
-    getAllTask
+    getAllTask,
+    getSingleTaskDetail
 }
