@@ -27,7 +27,7 @@ _id:string;
     finalTotalCost:number;
     advancePaymentPaid:number;
     paymentPaid:boolean;
-    paymentStatus:PaymentStatus;
+    paymentStatus:PaymentStatus; // "paid", "unpaid", "partial paid"
     assignEmployee:EmployeeInterface;
     clientDetail:ClientInterface;
     createdAt:Date;

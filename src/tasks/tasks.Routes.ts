@@ -1,5 +1,5 @@
 import express from 'express'
-import { createTask, getAllTask, getSingleTaskDetail, updateStatusFlag } from './task.Controller'
+import { createTask, getAllTask, getSingleTaskDetail, updatePaymentStatus, updateStatusFlag } from './task.Controller'
 import authenticate from '../middlewares/authenticate'
 
 const tasksRouter = express.Router()
@@ -26,6 +26,11 @@ tasksRouter.patch(
     '/updateStatusFlag/:taskId',
     authenticate,
     updateStatusFlag
+)
+tasksRouter.patch(
+    '/updatePaymentStatus/:taskId',
+    authenticate,
+    updatePaymentStatus
 )
 
 export default tasksRouter

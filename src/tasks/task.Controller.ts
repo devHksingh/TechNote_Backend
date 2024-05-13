@@ -119,11 +119,15 @@ const updateStatusFlag = async(req:Request,res:Response,next:NextFunction)=>{
     if(role === 'Admin' || role === 'Manager'||role === 'Technician'||role === 'Tech_support'){
         try {
             const task = await Task.findById({_id:taskId})
+            console.log(task);
             if(task){
+                                
                 task.StatusFlag = status
                 await task.save({validateBeforeSave:false})
                 console.log(task.StatusFlag);
                 
+            }else{
+                return next(createHttpError(400,'Wrong id.try it again!'))
             } 
         } catch (error) {
             return next(createHttpError(500,'Unable to update StatusFlag.try it again!'))
@@ -134,11 +138,43 @@ const updateStatusFlag = async(req:Request,res:Response,next:NextFunction)=>{
     return res.status(200).json({StatusFlag:status})
 }   
 
-// update paymentStatus > chnage remaingPayment
+// update paymentStatus > chnage remaingPayment amount ["paid", "unpaid", "partial paid"]
+
+const updatePaymentStatus = async(req:Request,res:Response,next:NextFunction)=>{
+    const taskId = req.params.taskId
+    const _req = req as AuthRequest
+    const role = _req.userRole
+    const {paymentStatus,remaingPaymentAmount} = req.body
+    console.log(paymentStatus);
+    
+
+    if(role === 'Admin' || role === 'Manager'||role === 'Technician'||role === 'Tech_support'){
+        try {
+            const task = await Task.findById({_id:taskId})
+            console.log(task);
+            if(task){
+                                
+                task.paymentStatus = paymentStatus
+                task.remaingPayment = remaingPaymentAmount
+                await task.save({validateBeforeSave:false})
+                console.log(task.StatusFlag);
+                
+            }else{
+                return next(createHttpError(400,'Wrong id.try it again!'))
+            } 
+        } catch (error) {
+            return next(createHttpError(500,'Unable to update StatusFlag.try it again!'))
+        }
+    }else{
+        return next(createHttpError(400,'Unauthorize request'))
+    }
+    return res.status(200).json({StatusFlag:paymentStatus})
+}
 
 export {
     createTask,
     getAllTask,
     getSingleTaskDetail,
-    updateStatusFlag
+    updateStatusFlag,
+    updatePaymentStatus
 }
