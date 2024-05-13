@@ -1,5 +1,5 @@
 import express from 'express'
-import { createTask } from './task.Controller'
+import { createTask, getAllTask } from './task.Controller'
 import authenticate from '../middlewares/authenticate'
 
 const tasksRouter = express.Router()
@@ -15,5 +15,10 @@ tasksRouter.post(
     createTask
 )
 
+tasksRouter.get(
+    '/',
+    authenticate,
+    getAllTask
+)
 
 export default tasksRouter

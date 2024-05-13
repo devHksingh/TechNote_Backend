@@ -81,7 +81,20 @@ const taskSchema = new Schema({
     clientDetail:[{
         type:Schema.Types.ObjectId,
         ref:'Client'
-    }]
+    }],
+    // bookSlot:{
+    //     date:{type:Date},
+    //     timeSlot:{
+    //         tpye:String,
+    //         enum:['10am-11am', '11am-12pm', '12pm-1pm', '1pm-2pm', '2pm-3pm', '3pm-4pm', '4pm-5pm', '5pm-6pm', '6pm-7pm']
+    //     },
+    //     isAvailable:{
+    //         tpye:String,
+    //     }
+
+    // },
+
+
 
 
 },{timestamps:true})
