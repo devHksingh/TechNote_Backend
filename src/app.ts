@@ -8,6 +8,7 @@ import employeeRouter from "./employee/employee.Routes"
 import clientRouter from "./client/client.Routes"
 import tasksRouter from "./tasks/tasks.Routes"
 import userRouter from "./testUser/user.Route"
+import bookSlotRouter from "./Booking_Slot/booking.Routes"
 
 
 const app = express()
@@ -37,6 +38,9 @@ app.use('/api/v1/client',clientRouter)
 
 // task router
 app.use('/api/v1/task',tasksRouter)
+
+// bookSlot router
+app.use('/api/v1/slot',bookSlotRouter)
 
 // employee router
 app.use('/api/v1/user',userRouter)
