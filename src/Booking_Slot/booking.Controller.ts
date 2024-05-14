@@ -138,18 +138,35 @@ const getSingleDateOccupiedTimeslots = async (req:Request,res:Response,next:Next
         console.log(timeslotsDetails);
         
     } catch (error) {
-        return next(createHttpError(500,'No Booking at this date'))
+        return next(createHttpError(500,'Unable to fetch booking details'))
     }
 
     return res.status(200).json({
-        timeslotsDetails:timeslotsDetails
+        timeslotsDetails
     })
 }
 
 // return all booked slot
 
+const getAllOccupiedTimeslots = async (req:Request,res:Response,next:NextFunction)=>{
+    let timeslotsDetails
+
+    try {
+        timeslotsDetails = await Booking.find({})
+        if(!timeslotsDetails){
+            return next(createHttpError(400,'No Booking found'))
+        }
+    } catch (error) {
+        return next(createHttpError(500,'Unable to fetch booking details'))
+    }
+    return res.status(200).json({
+        timeslotsDetails
+    })
+}
+
 
 export {
     bookSlot,
-    getSingleDateOccupiedTimeslots
+    getSingleDateOccupiedTimeslots,
+    getAllOccupiedTimeslots
 }

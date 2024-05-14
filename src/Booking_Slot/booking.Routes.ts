@@ -1,6 +1,6 @@
 import express from 'express'
 import authenticate from '../middlewares/authenticate'
-import { bookSlot, getSingleDateOccupiedTimeslots } from './booking.Controller'
+import { bookSlot, getAllOccupiedTimeslots, getSingleDateOccupiedTimeslots } from './booking.Controller'
 
 
 const bookSlotRouter = express.Router()
@@ -15,6 +15,12 @@ bookSlotRouter.get(
     '/bookSlot/:date',
     authenticate,
     getSingleDateOccupiedTimeslots
+
+)
+bookSlotRouter.get(
+    '/bookSlot/',
+    
+    getAllOccupiedTimeslots
 
 )
 export default bookSlotRouter
