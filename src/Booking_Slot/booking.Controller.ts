@@ -124,9 +124,32 @@ const bookSlot = async (req:Request,res:Response,next:NextFunction)=>{
 
 // return all booked slot at given date
 
+const getSingleDateOccupiedTimeslots = async (req:Request,res:Response,next:NextFunction)=>{
+
+    const date = req.params.date
+    console.log(date);
+    const queryDate = date.split('_').join('/')
+    let timeslotsDetails
+    try {
+        timeslotsDetails = await Booking.find({date:queryDate})
+        if(!timeslotsDetails){
+            return next(createHttpError(400,'No Booking at this date'))
+        }
+        console.log(timeslotsDetails);
+        
+    } catch (error) {
+        return next(createHttpError(500,'No Booking at this date'))
+    }
+
+    return res.status(200).json({
+        timeslotsDetails:timeslotsDetails
+    })
+}
+
 // return all booked slot
 
 
 export {
     bookSlot,
+    getSingleDateOccupiedTimeslots
 }
